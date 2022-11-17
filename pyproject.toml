@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "camina"
+version = "0.1.10"
+description = "Your Python project companion"
+authors = ["corey rayburn yung <coreyrayburnyung@gmail.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/WithPrecedent/camina"
+repository = "https://github.com/WithPrecedent/camina"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+miller = ["^0.1.5"]
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
