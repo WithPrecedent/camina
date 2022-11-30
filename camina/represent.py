@@ -49,7 +49,7 @@ from collections.abc import (
 import dataclasses
 import inspect
 from types import FunctionType
-from typing import Any, Optional, Type, Union
+from typing import Any, Optional, Type
 
 import camina
 
@@ -126,13 +126,13 @@ def beautify(
    
 def beautify_dict(
     item: Mapping[Hashable, Any], 
-    facade: Union[Representation, Type[Any]], 
+    facade: Representation | Type[Any], 
     offsets: int) -> str:
     """Returns a beautiful str representation of a dict-like 'item'.
 
     Args:
         item (Mapping[Hashable, Any]): item to be represented.
-        facade (Union[Representation, Type[Any]]): representation for item or 
+        facade (Representation | Type[Any]): representation for item or 
             a type matching a key in the 'facades' dict.
         offsets (int): number of tabs of whitespace to put before the str
             representation.
@@ -162,7 +162,7 @@ def beautify_dict(
 
 def beautify_object(
     item: object, 
-    facade: Union[Representation, Type[Any]], 
+    facade: Representation | Type[Any], 
     offsets: int,
     package: Optional[str] = None,
     exclude: MutableSequence[str] = None,
@@ -221,15 +221,15 @@ def beautify_object(
     return ''.join(summary)
 
 def beautify_list(
-    item: Union[MutableSequence[Any], set[Any], tuple[Any, ...]], 
-    facade: Union[Representation, Type[Any]], 
+    item: MutableSequence[Any] | set[Any] | tuple[Any, ...], 
+    facade: Representation | Type[Any], 
     offsets: int) -> str:
     """Returns a beautiful string representation of a list-like 'item'.
 
     Args:
-        item (Union[MutableSequence, set, tuple]): the list, set, tuple, or 
-            similar object to return a str representation for.
-        facade (Union[Representation, Type]): 
+        item (MutableSequence[Any] | set[Any] | tuple[Any, ...]): the list, 
+            set, tuple, or similar object to return a str representation for.
+        facade (Representation | Type[Any]): 
         offsets (int): [description]
 
     Returns:
@@ -256,7 +256,7 @@ def beautify_list(
 
 def beautify_string(
     item: MutableSequence[Any], 
-    facade: Union[Representation, Type[Any]], 
+    facade: Representation | Type[Any], 
     offsets: int) -> str:
     """[summary]
 

@@ -68,14 +68,14 @@ import datetime
 import inspect
 import itertools
 import pathlib
-from typing import Any, Callable, Optional, Type, Union
+from typing import Any, Optional, Type
 
 from . import modify
 
 
 """ General Converters """
 
-def instancify(item: Union[Type[Any], object], **kwargs: Any) -> Any:
+def instancify(item: Type[Any] | object, **kwargs: Any) -> Any:
     """Returns 'item' as an instance with 'kwargs' as parameters/attributes.
     
     If 'item' is already an instance, kwargs are added as attributes to the
@@ -83,7 +83,7 @@ def instancify(item: Union[Type[Any], object], **kwargs: Any) -> Any:
     name.
 
     Args:
-        item (Union[Type[Any], object])): class to make an instance out of by 
+        item (Type[Any] | object)): class to make an instance out of by 
             passing kwargs or an instance to add kwargs to as attributes.
 
     Raises:
@@ -200,7 +200,7 @@ def namify(item: Any, default: Optional[str] = None) -> Optional[str]:
             else:
                 return default
                             
-def numify(item: Any, raise_error: bool = False) -> Union[int, float, Any]:
+def numify(item: Any, raise_error: bool = False) -> int | float | Any:
     """Converts 'item' to a numeric type.
     
     If 'item' cannot be converted to a numeric type and 'raise_error' is False, 
@@ -217,7 +217,7 @@ def numify(item: Any, raise_error: bool = False) -> Union[int, float, Any]:
             'raise_error' is True.
             
     Returns
-        Union[int, float, str]: converted to numeric type, if possible.
+        int | float | Any: converted to numeric type, if possible.
 
     """
     try:
@@ -232,12 +232,12 @@ def numify(item: Any, raise_error: bool = False) -> Union[int, float, Any]:
             else:
                 return item
 
-def pathlibify(item: Union[str, pathlib.Path]) -> pathlib.Path:
+def pathlibify(item: str | pathlib.Path) -> pathlib.Path:
     """Converts string 'path' to pathlib.Path object.
 
     Args:
-        item (Union[str, pathlib.Path]): either a string summary of a
-            path or a pathlib.Path object.
+        item (str | pathlib.Path): either a string summary of a path or a 
+            pathlib.Path object.
 
     Raises:
         TypeError if 'path' is neither a str or pathlib.Path type.
@@ -313,7 +313,7 @@ def tuplify(item: Any, default: Optional[Any] = None) -> Any:
     else:
         return tuple([item])
         
-def typify(item: str) -> Union[Sequence[Any], int, float, bool, str]:
+def typify(item: str) -> Sequence[Any] | int | float | bool | str:
     """Converts stings to appropriate, supported datatypes.
 
     The method converts strings to list (if ', ' is present), int, float,
@@ -325,7 +325,7 @@ def typify(item: str) -> Union[Sequence[Any], int, float, bool, str]:
         item (str): string to be converted to appropriate datatype.
 
     Returns:
-        item (str, list, int, float, or bool): converted item.
+        Sequence[Any] | int | float | bool | str: converted item.
 
     """
     if not isinstance(item, str):

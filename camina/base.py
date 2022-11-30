@@ -17,10 +17,11 @@ License: Apache-2.0
     limitations under the License.
 
 Contents:
-    Bunch (Collection, Protocol): base class for general containers in camina. It 
-        requires subclasses to have 'add', 'delete', and 'subset' methods.
-    Composite (Bunch, Protocol): base class for camina composite data structures. 
-        Requires 'append', 'delete', 'merge', 'prepend', and 'walk' methods.
+    Bunch (Collection, Protocol): base class for general containers in camina. 
+        It requires subclasses to have 'add', 'delete', and 'subset' methods.
+    Composite (Bunch, Protocol): base class for camina composite data 
+        structures. Requires 'append', 'delete', 'merge', 'prepend', and 'walk' 
+        methods.
     Proxy (Container, Protocol): basic wrapper for a stored python object. 
         Dunder methods attempt to intelligently apply access methods to either 
         the wrapper or the wrapped item.   
@@ -38,7 +39,7 @@ from __future__ import annotations
 import abc
 from collections.abc import Collection, Container, Hashable, Iterator
 import dataclasses
-from typing import Any, Optional, Protocol, runtime_checkable, Union
+from typing import Any, Optional, Protocol, runtime_checkable
 
   
 @dataclasses.dataclass # type: ignore
@@ -95,8 +96,8 @@ class Bunch(Collection, Protocol): # type: ignore
     @abc.abstractmethod
     def subset(
         self, 
-        include: Optional[Union[Collection[Any], Any]] = None, 
-        exclude: Optional[Union[Collection[Any], Any]] = None,
+        include: Optional[Collection[Any] | Any] = None, 
+        exclude: Optional[Collection[Any] | Any] = None,
         *args: Any, 
         **kwargs: Any) -> Bunch:
         """Returns a new instance with a subset of 'contents'.
@@ -106,10 +107,10 @@ class Bunch(Collection, Protocol): # type: ignore
         class instance before 'exclude' is applied.
              
         Args:
-            include (Optional[Union[Collection[Any], Any]]): item(s) to include 
-                in the new Bunch. Defaults to None.
-            exclude (Optional[Union[Collection[Any], Any]]): item(s) to exclude 
-                in the new Bunch. Defaults to None.
+            include (Optional[Collection[Any] | Any]): item(s) to include in the 
+                new Bunch. Defaults to None.
+            exclude (Optional[Collection[Any] | Any]): item(s) to exclude from 
+                the new Bunch. Defaults to None.
         
         """
         pass

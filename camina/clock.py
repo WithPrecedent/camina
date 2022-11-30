@@ -29,7 +29,7 @@ from __future__ import annotations
 from collections.abc import Callable
 import datetime
 import time
-from typing import Any, Optional, Type, Union
+from typing import Any, Optional
 
 import camina
 
@@ -73,8 +73,7 @@ def timer(process: Callable[..., Optional[Any]]) -> (
         Callable[..., Optional[Any]]):
         def decorated(*args: Any, **kwargs: Any) -> (
             Callable[..., Optional[Any]]):
-            def convert_time(
-                seconds: Union[int, float]) -> tuple[int, int, int]:
+            def convert_time(seconds: int | float) -> tuple[int, int, int]:
                 minutes, seconds = divmod(seconds, 60)
                 hours, minutes = divmod(minutes, 60)
                 return int(hours), int(minutes), int(seconds)

@@ -1,15 +1,4 @@
 [[package]]
-name = "amos"
-version = "0.1.10"
-description = "Your Python project companion"
-category = "main"
-optional = false
-python-versions = ">=3.9,<4.0"
-
-[package.dependencies]
-miller = ">=0.1.2,<0.2.0"
-
-[[package]]
 name = "atomicwrites"
 version = "1.4.1"
 description = "Atomic file writes."
@@ -41,14 +30,14 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7
 
 [[package]]
 name = "miller"
-version = "0.1.5"
+version = "0.1.6"
 description = "introspection tools using consistent, accessible syntax"
 category = "main"
 optional = false
 python-versions = ">=3.9,<4.0"
 
 [package.dependencies]
-amos = ">=0.1.10,<0.2.0"
+camina = ">=0.1.10,<0.2.0"
 nagata = ">=0.1.3,<0.2.0"
 
 [[package]]
@@ -61,14 +50,14 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "nagata"
-version = "0.1.3"
+version = "0.1.4"
 description = "python file management using a common, intuitive syntax"
 category = "main"
 optional = false
 python-versions = ">=3.9,<4.0"
 
 [package.dependencies]
-amos = ">=0.1.10,<0.2.0"
+camina = ">=0.1.10,<0.2.0"
 miller = ">=0.1.4,<0.2.0"
 
 [[package]]
@@ -148,10 +137,6 @@ python-versions = "^3.9"
 content-hash = "de805c0c439c18b39618d41983e7975055acc7b56a8e555b65f6e69ed693f0df"
 
 [metadata.files]
-amos = [
-    {file = "amos-0.1.10-py3-none-any.whl", hash = "sha256:a1594b75fbb3e7f479a38b77a9fc30aea71bb27fa120647fd691fdc1b6c7db66"},
-    {file = "amos-0.1.10.tar.gz", hash = "sha256:c971f6f2778f0d106e88567d3d81a7f4576ee5ffef67ca575e4515d2f2b5dbdf"},
-]
 atomicwrites = [
     {file = "atomicwrites-1.4.1.tar.gz", hash = "sha256:81b2c9071a49367a7f770170e5eec8cb66567cfbbc8c73d20ce5ca4a8d71cf11"},
 ]
@@ -164,16 +149,16 @@ colorama = [
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
 miller = [
-    {file = "miller-0.1.5-py3-none-any.whl", hash = "sha256:9c99b1b8ca918c0b1d991cd895688523dbf11d13e46ce542523944cd46025363"},
-    {file = "miller-0.1.5.tar.gz", hash = "sha256:ed17d6a876b3827903c6cf1ffbc61a8181be94df8b286f8538c02296de9b3221"},
+    {file = "miller-0.1.6-py3-none-any.whl", hash = "sha256:8983a0fc27e1ebd9d7be15e1261e4ff9c2d5814e07f337c485d25cd9d2ac2deb"},
+    {file = "miller-0.1.6.tar.gz", hash = "sha256:f0c61ed4f8323f8fe2611f0b0f5b14c3381e973513b84c32d5f6e1053ea8e509"},
 ]
 more-itertools = [
     {file = "more-itertools-9.0.0.tar.gz", hash = "sha256:5a6257e40878ef0520b1803990e3e22303a41b5714006c32a3fd8304b26ea1ab"},
     {file = "more_itertools-9.0.0-py3-none-any.whl", hash = "sha256:250e83d7e81d0c87ca6bd942e6aeab8cc9daa6096d12c5308f3f92fa5e5c1f41"},
 ]
 nagata = [
-    {file = "nagata-0.1.3-py3-none-any.whl", hash = "sha256:afaaecf61672d2403e4f58039cf9ca2f2d34aea22d2773f3f65963dc677834f6"},
-    {file = "nagata-0.1.3.tar.gz", hash = "sha256:8bac47638dd8036ad244cdef656cd1047fb4ca7e4a296298c6217e8e4035074a"},
+    {file = "nagata-0.1.4-py3-none-any.whl", hash = "sha256:ee9a165ff2b868ea9d934f5750d20f845766d680ea85b00e7b7b0a6c5a6fede9"},
+    {file = "nagata-0.1.4.tar.gz", hash = "sha256:3c8303a5406b6177c81ddac4545cc0fc112095826509462f2b1a49f4ff137101"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},

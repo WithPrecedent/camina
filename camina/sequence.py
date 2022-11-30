@@ -30,7 +30,7 @@ from __future__ import annotations
 from collections.abc import Hashable, Mapping, MutableSequence, Sequence
 import copy
 import dataclasses
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import miller
 
@@ -61,15 +61,14 @@ class Listing(base.Bunch, MutableSequence): # type: ignore
 
     """ Public Methods """
 
-    def add(self, item: Union[Any, Sequence[Any]]) -> None:
+    def add(self, item: Any | Sequence[Any]) -> None:
         """Tries to extend 'contents' with 'item'. Otherwise, it appends.
 
         The method will extend all passed sequences, except str types, which it
         will append.
         
         Args:
-            item (Union[Any, Sequence[Any]]): item(s) to add to the 'contents' 
-                attribute.
+            item (Any | Sequence[Any]): item(s) to add to 'contents'.
                 
         """
         if miller.is_sequence(item = item):
@@ -99,15 +98,14 @@ class Listing(base.Bunch, MutableSequence): # type: ignore
         self.contents.insert(index, item)
         return
 
-    def prepend(self, item: Union[Any, Sequence[Any]]) -> None:
+    def prepend(self, item: Any | Sequence[Any]) -> None:
         """Prepends 'item' to 'contents'.
 
         If 'item' is a non-str sequence, 'prepend' adds its contents to the 
         stored list in the order they appear in 'item'.
         
         Args:
-            item (Union[Any, Sequence[Any]]): item(s) to prepend to the 
-                'contents' attribute.
+            item (Any | Sequence[Any]): item(s) to prepend to 'contents'.
                 
         """
         if miller.is_sequence(item = item):
@@ -119,8 +117,8 @@ class Listing(base.Bunch, MutableSequence): # type: ignore
                    
     def subset(
         self, 
-        include: Optional[Union[Sequence[Any], Any]] = None, 
-        exclude: Optional[Union[Sequence[Any], Any]] = None) -> Listing:
+        include: Optional[Any | Sequence[Any]] = None, 
+        exclude: Optional[Any | Sequence[Any]] = None) -> Listing:
         """Returns a new instance with a subset of 'contents'.
 
         This method applies 'include' before 'exclude' if both are passed. If
@@ -128,9 +126,9 @@ class Listing(base.Bunch, MutableSequence): # type: ignore
         class instance before 'exclude' is applied.
         
         Args:
-            include (Optional[Union[Sequence[Any], Any]]): item(s) to include in 
+            include (Optional[Any | Sequence[Any]]): item(s) to include in 
                 the new instance. Defaults to None.
-            exclude (Optional[Union[Sequence[Any], Any]]): item(s) to exclude in 
+            exclude (Optional[Any | Sequence[Any]]): item(s) to exclude in 
                 the new instance. Defaults to None.       
         
         Raises:
@@ -229,7 +227,7 @@ class Hybrid(Listing):
         
     """ Public Methods """
 
-    def delete(self, item: Union[Any, int]) -> None:
+    def delete(self, item: Any | int) -> None:
         """Deletes item in 'contents'.
 
         If 'item' is not an int type, this method looks for a matching 'name'
@@ -237,7 +235,7 @@ class Hybrid(Listing):
         is an int type, only the item at that index is deleted.
 
         Args:
-            key (Union[Any, int]): name or index in 'contents' to delete.
+            key (Any, int): name or index in 'contents' to delete.
 
         """
         if isinstance(item, int):
@@ -338,7 +336,7 @@ class Hybrid(Listing):
 
     """ Dunder Methods """
 
-    def __getitem__(self, key: Union[Hashable, int]) -> Any: # type: ignore
+    def __getitem__(self, key: Hashable | int) -> Any: # type: ignore
         """Returns value(s) for 'key' in 'contents'.
         
         If 'key' is not an int type, this method looks for a matching 'name'
@@ -352,7 +350,7 @@ class Hybrid(Listing):
         is returned.
 
         Args:
-            key (Union[Hashable, int]): name of an item or index to search for 
+            key (Hashable, int): name of an item or index to search for 
                 in 'contents'.
 
         Returns:
@@ -383,11 +381,11 @@ class Hybrid(Listing):
             else:
                 return matches
             
-    def __setitem__(self, key: Union[Any, int], value: Any) -> None:
+    def __setitem__(self, key: Any | int, value: Any) -> None:
         """sets 'key' in 'contents' to 'value'.
 
         Args:
-            key (Union[Any, int]): if key isn't an int, it is ignored (since the
+            key (Any | int): if key isn't an int, it is ignored (since the
                 'name' attribute of the value will be acting as the key). In
                 such a case, the 'value' is added to the end of 'contents'. If
                 key is an int, 'value' is assigned at the that index number in

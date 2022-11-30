@@ -46,7 +46,7 @@ any other package maintainer - I want to ensure the package is as accessible and
 useful as possible.
      
 """
-__version__ = '0.1.0'
+__version__ = '0.1.10'
 
 __package__ = 'camina'
 
@@ -54,7 +54,9 @@ __author__ = 'Corey Rayburn Yung'
 
 
 from .base import *
+from .clock import *
 from .convert import *
 from .mapping import *
 from .modify import *
+from .represent import *
 from .sequence import *

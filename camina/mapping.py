@@ -35,7 +35,7 @@ from collections.abc import (
 import copy
 import dataclasses
 import inspect
-from typing import Any, Optional, Type, Union
+from typing import Any, Optional, Type
 
 from . import base
 from . import convert
@@ -174,9 +174,8 @@ class Dictionary(base.Bunch, MutableMapping):  # type: ignore
                
     def subset(
         self, 
-        include: Optional[Union[Hashable, Sequence[Hashable]]] = None, 
-        exclude: Optional[Union[Hashable, Sequence[Hashable]]] = None) -> (
-            Dictionary):
+        include: Optional[Hashable | Sequence[Hashable]] = None, 
+        exclude: Optional[Hashable | Sequence[Hashable]] = None) -> Dictionary:
         """Returns a new instance with a subset of 'contents'.
 
         This method applies 'include' before 'exclude' if both are passed. If
@@ -184,10 +183,10 @@ class Dictionary(base.Bunch, MutableMapping):  # type: ignore
         class instance before 'exclude' is applied.
         
         Args:
-            include (Optional[Union[Hashable, Sequence[Hashable]]]): key(s) to 
+            include (Optional[Hashable | Sequence[Hashable]]): key(s) to 
                 include in the new Dictionary instance.
-            exclude (Optional[Union[Hashable, Sequence[Hashable]]]): key(s) to 
-                exclude in the new Dictionary instance.                
+            exclude (Optional[Hashable | Sequence[Hashable]]): key(s) to 
+                exclude from the new Dictionary instance.                
         
         Raises:
             ValueError: if 'include' and 'exclude' are both None.
@@ -295,11 +294,11 @@ class Catalog(Dictionary):
 
     """ Public Methods """
     
-    def delete(self, item: Union[Hashable, Sequence[Hashable]]) -> None:
+    def delete(self, item: Hashable | Sequence[Hashable]) -> None:
         """Deletes 'item' in 'contents'.
 
         Args:
-            item: (Union[Hashable, Sequence[Hashable]]): name(s) of key(s) in 
+            item (Hashable | Sequence[Hashable]): name(s) of key(s) in 
                 'contents' to delete the key/value pair.
 
         """
@@ -315,17 +314,17 @@ class Catalog(Dictionary):
 
     def __getitem__(
         self, 
-        key: Union[Hashable, Sequence[Hashable]]) -> Union[Any, Sequence[Any]]:
+        key: Hashable | Sequence[Hashable]) -> Any | Sequence[Any]:
         """Returns value(s) for 'key' in 'contents'.
 
         The method searches for 'all', 'default', and 'none' matching wildcard
         options before searching for direct matches in 'contents'.
 
         Args:
-            key (Union[Hashable, Sequence[Hashable]]): key(s) in 'contents'.
+            key (Hashable | Sequence[Hashable]): key(s) in 'contents'.
 
         Returns:
-            Union[Any, Sequence[Any]]: value(s) stored in 'contents'.
+            Any | Sequence[Any]: value(s) stored in 'contents'.
 
         """
         # Returns a list of all values if the 'all' key is sought.
@@ -361,15 +360,14 @@ class Catalog(Dictionary):
 
     def __setitem__(
         self, 
-        key: Union[Hashable, Sequence[Hashable]], 
-        value: Union[Any, Sequence[Any]]) -> None:
+        key: Hashable | Sequence[Hashable], 
+        value: Any | Sequence[Any]) -> None:
         """sets 'key' in 'contents' to 'value'.
 
         Args:
-            key (Union[Hashable, Sequence[Hashable]]): key(s) to set in 
+            key (Hashable | Sequence[Hashable]): key(s) to set in 'contents'.
+            value (Any | Sequence[Any]): value(s) to be paired with 'key' in 
                 'contents'.
-            value (Union[Any, Sequence[Any]]): value(s) to be paired with 'key' 
-                in 'contents'.
 
         """
         try:
@@ -401,7 +399,7 @@ class Library(MutableMapping):
     
     def deposit(
         self, 
-        item: Union[Type[Any], object],
+        item: Type[Any] | object,
         name: Optional[Hashable] = None) -> None:
         """Adds 'item' to 'classes' and/or 'instances'.
 
@@ -411,7 +409,7 @@ class Library(MutableMapping):
         a 'name' attribute (which is used as the key for the instance).
         
         Args:
-            item (Union[Type[Any], object]): class or instance to add to the 
+            item (Type[Any] | object): class or instance to add to the 
                 Library instance.
             name (Optional[Hashable]): key to use to store 'item'. If not
                 passed, a key will be created using the 'namify' method.
@@ -454,9 +452,9 @@ class Library(MutableMapping):
 
     def withdraw(
         self, 
-        item: Union[Hashable, Sequence[Hashable]], 
+        item: Hashable | Sequence[Hashable], 
         parameters: Optional[MutableMapping[Hashable, Any]] = None) -> (
-            Union[Type[Any], object]):
+            Type[Any] | object):
         """Returns instance or class of first match of 'item' from catalogs.
         
         The method prioritizes the 'instances' catalog over 'classes' and any
@@ -465,7 +463,7 @@ class Library(MutableMapping):
         An instance will be returned so long as 'parameters' is not None. 
         
         Args:
-            item (Union[Hashable, Sequence[Hashable]]): key name(s) of stored 
+            item (Hashable | Sequence[Hashable]): key name(s) of stored 
                 item(s) sought.
             parameters (Optional[MutableMapping[Hashable, Any]]]): keyword 
                 arguments to pass to a newly created instance or, if the stored 
@@ -478,7 +476,7 @@ class Library(MutableMapping):
                 'instances' or 'classes'.
             
         Returns:
-            Union[Type[Any], object]: returns a class or instance if 'parameters' 
+            Type[Any] | object: returns a class or instance if 'parameters' 
                 are None, depending upon with Catalog the matching item is 
                 found. If 'parameters' are passed, an instance is always 
                 returned.
