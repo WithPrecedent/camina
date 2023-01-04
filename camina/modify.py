@@ -52,13 +52,14 @@ from __future__ import annotations
 
 from collections.abc import Hashable, Mapping, MutableSequence, Sequence, Set
 import dataclasses
+import functools
 import re
-from typing import Any, Type
+from typing import Any, Optional, Type
 
 
 """ Adders """
 
-# @camina.dynamic.dispatcher # type: ignore
+@functools.singledispatch
 def add_prefix(item: Any, prefix: str, divider: str = '') -> Any:
     """Adds 'prefix' to 'item' with 'divider' in between.
     
@@ -77,7 +78,7 @@ def add_prefix(item: Any, prefix: str, divider: str = '') -> Any:
     """
     raise TypeError(f'item is not a supported type for {__name__}')
  
-# @add_prefix.register # type: ignore
+@add_prefix.register
 def add_prefix_to_str(item: str, prefix: str, divider: str = '') -> str:
     """Adds 'prefix' to 'item' with 'divider' in between.
     
@@ -93,7 +94,7 @@ def add_prefix_to_str(item: str, prefix: str, divider: str = '') -> str:
     """
     return divider.join([prefix, item])
  
-# @add_prefix.register # type: ignore
+@add_prefix.register
 def add_prefix_to_dict(
     item: Mapping[str, Any],  
     prefix: str, 
@@ -117,9 +118,9 @@ def add_prefix_to_dict(
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents) # type: ignore
+        return vessel(contents)
  
-# @add_prefix.register # type: ignore
+@add_prefix.register
 def add_prefix_to_list(
     item: MutableSequence[str], 
     prefix: str, 
@@ -142,9 +143,9 @@ def add_prefix_to_list(
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents) # type: ignore
+        return vessel(contents)
  
-# @add_prefix.register # type: ignore
+@add_prefix.register
 def add_prefix_to_set(
     item: Set[str], 
     prefix: str, 
@@ -167,9 +168,9 @@ def add_prefix_to_set(
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents) # type: ignore
+        return vessel(contents)
 
-# @add_prefix.register # type: ignore
+@add_prefix.register
 def add_prefix_to_tuple(
     item: tuple[str, ...], 
     prefix: str, 
@@ -219,12 +220,12 @@ def add_slots(item: Type[Any]) -> Type[Any]:
             item_dict.pop(field_name, None)
         item_dict.pop('__dict__', None)
         qualname = getattr(item, '__qualname__', None)
-        item = type(item)(item.__name__, item.__bases__, item_dict) # type: ignore
+        item = type(item)(item.__name__, item.__bases__, item_dict)
         if qualname is not None:
             item.__qualname__ = qualname
     return item
 
-# @camina.dynamic.dispatcher # type: ignore 
+@functools.singledispatch
 def add_suffix(item: Any, suffix: str, divider: str = '') -> Any:
     """Adds 'suffix' to 'item' with 'divider' in between.
     
@@ -243,7 +244,7 @@ def add_suffix(item: Any, suffix: str, divider: str = '') -> Any:
     """
     raise TypeError(f'item is not a supported type for {__name__}')
  
-# @add_suffix.register # type: ignore
+@add_suffix.register
 def add_suffix_to_str(item: str, suffix: str, divider: str = '') -> str:
     """Adds 'suffix' to 'item' with 'divider' in between.
     
@@ -259,7 +260,7 @@ def add_suffix_to_str(item: str, suffix: str, divider: str = '') -> str:
     """
     return divider.join([item, suffix])
  
-# @add_suffix.register # type: ignore
+@add_suffix.register
 def add_suffix_to_dict(
     item: Mapping[str, Any], 
     suffix: str, 
@@ -283,9 +284,9 @@ def add_suffix_to_dict(
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents) # type: ignore
+        return vessel(contents)
  
-# @add_suffix.register # type: ignore
+@add_suffix.register
 def add_suffix_to_list(
     item: MutableSequence[str], 
     suffix: str, 
@@ -308,9 +309,9 @@ def add_suffix_to_list(
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents) # type: ignore
+        return vessel(contents)
  
-# @add_suffix.register # type: ignore
+@add_suffix.register
 def add_suffix_to_set(
     item: Set[str], 
     suffix: str, 
@@ -333,9 +334,9 @@ def add_suffix_to_set(
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents) # type: ignore
+        return vessel(contents)
 
-# @add_suffix.register # type: ignore
+@add_suffix.register
 def add_suffix_to_tuple(
     item: tuple[str, ...], 
     suffix: str, 
@@ -358,7 +359,7 @@ def add_suffix_to_tuple(
 
 """ Dividers """
 
-# @camina.dynamic.dispatcher # type: ignore
+@functools.singledispatch
 def cleave(
     item: Any, 
     divider: Any,
@@ -384,7 +385,7 @@ def cleave(
     """
     raise TypeError(f'item is not a supported type for {__name__}')
 
-# @cleave.register # type: ignore
+@cleave.register
 def cleave_str(
     item: str, 
     divider: str = '_',
@@ -420,7 +421,7 @@ def cleave_str(
         prefix = suffix = item
     return prefix, suffix
 
-# @camina.dynamic.dispatcher # type: ignore
+@functools.singledispatch
 def separate(
     item: Any, 
     divider: Any,
@@ -443,7 +444,7 @@ def separate(
     """
     raise TypeError(f'item is not a supported type for {__name__}')
 
-# @separate.register # type: ignore
+@separate.register
 def separate_str(
     item: str, 
     divider: str = '_',
@@ -473,7 +474,7 @@ def separate_str(
  
 """ Subtractors """
 
-# @camina.dynamic.dispatcher # type: ignore
+@functools.singledispatch
 def deduplicate(item: Any) -> Any:
     """Deduplicates contents of 'item.
     
@@ -489,7 +490,7 @@ def deduplicate(item: Any) -> Any:
     """
     raise TypeError(f'item is not a supported type for {__name__}')
 
-# @deduplicate.register # type: ignore
+@deduplicate.register
 def deduplicate_list(item: MutableSequence[Any]) -> MutableSequence[Any]:
     """Deduplicates contents of 'item.
     
@@ -504,10 +505,10 @@ def deduplicate_list(item: MutableSequence[Any]) -> MutableSequence[Any]:
     if isinstance(item, list):
         return contents
     else:
-        vessel = item.__class__(contents) # type: ignore
-        return vessel(contents) # type: ignore
+        vessel = item.__class__(contents)
+        return vessel(contents)
 
-# @deduplicate.register # type: ignore
+@deduplicate.register
 def deduplicate_tuple(item: tuple[Any, ...]) -> tuple[Any, ...]:
     """Deduplicates contents of 'item.
     
@@ -540,7 +541,7 @@ def drop_dunders(item: list[Any]) -> list[Any]:
         return [
             i for i in item if not i.startswith('__') and not i.endswith('__')]
     
-# @camina.dynamic.dispatcher # type: ignore
+@functools.singledispatch
 def drop_prefix(item: Any, prefix: str, divider: str = '') -> Any:
     """Drops 'prefix' from 'item' with 'divider' in between.
     
@@ -559,7 +560,7 @@ def drop_prefix(item: Any, prefix: str, divider: str = '') -> Any:
     """
     raise TypeError(f'item is not a supported type for {__name__}')
 
-# @drop_prefix.register # type: ignore
+@drop_prefix.register
 def drop_prefix_from_str(item: str, prefix: str, divider: str = '') -> str:
     """Drops 'prefix' from 'item' with 'divider' in between.
     
@@ -579,7 +580,7 @@ def drop_prefix_from_str(item: str, prefix: str, divider: str = '') -> str:
     else:
         return item
 
-# @drop_prefix.register # type: ignore
+@drop_prefix.register
 def drop_prefix_from_dict(
     item: Mapping[str, Any], 
     prefix: str, 
@@ -603,9 +604,9 @@ def drop_prefix_from_dict(
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents) # type: ignore
+        return vessel(contents)
 
-# @drop_prefix.register # type: ignore
+@drop_prefix.register
 def drop_prefix_from_list(
     item: MutableSequence[str], 
     prefix: str, 
@@ -628,9 +629,9 @@ def drop_prefix_from_list(
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents) # type: ignore
+        return vessel(contents)
 
-# @drop_prefix.register # type: ignore
+@drop_prefix.register
 def drop_prefix_from_set(
     item: Set[str], 
     prefix: str, 
@@ -653,9 +654,9 @@ def drop_prefix_from_set(
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents) # type: ignore # type: ignore  
+        return vessel(contents)  
 
-# @drop_prefix.register # type: ignore
+@drop_prefix.register
 def drop_prefix_from_tuple(
     item: tuple[str, ...], 
     prefix: str, 
@@ -692,7 +693,7 @@ def drop_privates(item: list[Any]) -> list[Any]:
     else:
         return [i for i in item if not i.startswith('_')]
               
-# @camina.dynamic.dispatcher # type: ignore
+@functools.singledispatch
 def drop_substring(item: Any, substring: str) -> Any:
     """Drops 'substring' from 'item' with a possible 'divider' in between.
     
@@ -709,7 +710,7 @@ def drop_substring(item: Any, substring: str) -> Any:
     """
     raise TypeError(f'item is not a supported type for {__name__}')
 
-# @drop_substring.register # type: ignore
+@drop_substring.register
 def drop_substring_from_str(item: str, substring: str) -> str:
     """Drops 'substring' from 'item'.
     
@@ -726,7 +727,7 @@ def drop_substring_from_str(item: str, substring: str) -> str:
     else:
         return item
 
-# @drop_substring.register # type: ignore
+@drop_substring.register
 def drop_substring_from_dict(
     item: Mapping[str, Any], 
     substring: str) -> Mapping[str, Any]:
@@ -747,9 +748,9 @@ def drop_substring_from_dict(
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents) # type: ignore
+        return vessel(contents)
 
-# @drop_substring.register # type: ignore
+@drop_substring.register
 def drop_substring_from_list(
     item: MutableSequence[str], 
     substring: str) -> MutableSequence[str]:
@@ -768,9 +769,9 @@ def drop_substring_from_list(
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents) # type: ignore
+        return vessel(contents)
 
-# @drop_substring.register # type: ignore
+@drop_substring.register
 def drop_substring_from_set(item: Set[str], substring: str) -> Set[str]:
     """Drops 'substring' from items in 'item'.
     
@@ -787,9 +788,9 @@ def drop_substring_from_set(item: Set[str], substring: str) -> Set[str]:
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents) # type: ignore # type: ignore  
+        return vessel(contents)  
 
-# @drop_substring.register # type: ignore 
+@drop_substring.register 
 def drop_substring_from_tuple(
     item: tuple[str, ...], 
     substring: str) -> tuple[str, ...]:
@@ -806,7 +807,7 @@ def drop_substring_from_tuple(
     return tuple(
         [drop_substring(item = i, substring = substring) for i in item])    
      
-# @camina.dynamic.dispatcher # type: ignore
+@functools.singledispatch
 def drop_suffix(item: Any, suffix: str, divider: str = '') -> Any:
     """Drops 'suffix' from 'item' with 'divider' in between.
     
@@ -823,7 +824,7 @@ def drop_suffix(item: Any, suffix: str, divider: str = '') -> Any:
     """
     raise TypeError(f'item is not a supported type for {__name__}')
 
-# @drop_suffix.register # type: ignore
+@drop_suffix.register
 def drop_suffix_from_str(item: str, suffix: str, divider: str = '') -> str:
     """Drops 'suffix' from 'item' with 'divider' in between.
     
@@ -841,7 +842,7 @@ def drop_suffix_from_str(item: str, suffix: str, divider: str = '') -> str:
     else:
         return item
 
-# drop_suffix.register # type: ignore
+@drop_suffix.register
 def drop_suffix_from_dict(
     item: Mapping[str, Any], 
     suffix: str, 
@@ -863,9 +864,9 @@ def drop_suffix_from_dict(
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents) # type: ignore
+        return vessel(contents)
 
-# @drop_suffix.register # type: ignore
+@drop_suffix.register
 def drop_suffix_from_list(
     item: MutableSequence[str], 
     suffix: str, 
@@ -886,9 +887,9 @@ def drop_suffix_from_list(
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents) # type: ignore
+        return vessel(contents)
 
-# @drop_suffix.register # type: ignore
+@drop_suffix.register
 def drop_suffix_from_set(
     item: Set[str], 
     suffix: str, 
@@ -909,9 +910,9 @@ def drop_suffix_from_set(
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents) # type: ignore # type: ignore  
+        return vessel(contents)  
 
-# @drop_suffix.register # type: ignore
+@drop_suffix.register
 def drop_suffix_from_tuple(
     item: tuple[str, ...], 
     suffix: str, 
@@ -957,7 +958,10 @@ def snakify(item: str) -> str:
     item = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', item)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', item).lower()
 
-def uniquify(key: str, dictionary: Mapping[Hashable, Any]) -> str:
+def uniquify(
+    key: str, 
+    dictionary: Mapping[Hashable, Any],
+    index: Optional[int] = 1) -> str:
     """Creates a unique key name to avoid overwriting an item in 'dictionary'.
     
     The function is 1-indexed so that the first attempt to avoid a duplicate
@@ -975,7 +979,7 @@ def uniquify(key: str, dictionary: Mapping[Hashable, Any]) -> str:
     if key not in dictionary:
         return key
     else:
-        counter = 1
+        counter = index
         while True:
             counter += 1
             if counter > 2:
@@ -983,3 +987,4 @@ def uniquify(key: str, dictionary: Mapping[Hashable, Any]) -> str:
             name = ''.join([key, str(counter)])
             if name not in dictionary:
                 return name 
+            

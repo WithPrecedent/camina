@@ -43,20 +43,17 @@ class ThirdClass(object):
     name: str = 'third'
 
 
-# def test_proxy():
-#     wrapped = TestClass()
-#     proxy = camina.Proxy(contents = wrapped)
-#     proxy.id = 4543
-#     assert proxy.name == 'something'
-#     assert proxy.id == 4543
-#     assert hasattr(proxy, 'id')
-#     del proxy.id
-#     assert not hasattr(proxy, 'id')
-#     proxy.name == 'something else'
-#     print('test proxy', proxy.name)
-#     assert proxy.name == 'something_else'
+def test_proxy():
+    wrapped = TestClass()
+    proxy = camina.Proxy(contents = wrapped)
+    proxy.id = 4543
+    assert proxy.name == 'something'
+    assert proxy.id == 4543
+    assert hasattr(proxy, 'id')
+    del proxy.id
+    assert not hasattr(proxy, 'id')
+    return
     
-
 def test_listing():
     listing = camina.Listing(contents = ['a', 'b', 'c'])
     assert listing[1] == 'b'
@@ -142,23 +139,17 @@ def test_catalog():
     return
     
 def test_library():
-    library = camina.Library(classes = camina.Catalog(contents = {
-        'tester': TestClass}))
-    library.deposit(AnotherClass())
-    library.deposit(ThirdClass, 'random_name')
-    assert 'tester' in library
-    assert issubclass(library['random_name'], ThirdClass)
-    assert 'another_class' not in library.instances
-
-    assert 'another_class' in library.classes
-    assert 'another' in library.instances
+    library = camina.Library()
+    library.add(AnotherClass())
+    library.add(ThirdClass, 'random_name')
+    assert 'another' in library
+    assert 'random_name' in library
     library.delete('random_name')
-    # print('test library', library)
     assert 'random_name' not in library
     return
  
 if __name__ == '__main__':
-    # test_proxy()
+    test_proxy()
     test_listing()
     test_hybrid()
     test_dictionary()

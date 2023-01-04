@@ -31,7 +31,7 @@ import datetime
 import time
 from typing import Any, Optional
 
-import camina
+from . import convert
 
 
 def how_soon_is_now(
@@ -41,14 +41,15 @@ def how_soon_is_now(
 
     Args:
         prefix (Optional[str]): a prefix to add to the returned str.
-        time_format (Optional[str): format, using Python syntax in the 
-            'datetime' module', for the str output of the date and time.
+        time_format (Optional[str]): format to create a str from datetime. The
+            passed argument should follow the rules of datetime.strftime. 
+            Defaults to '%Y-%m-%d_%H-%M'.
         
     Returns:
-        str: with current date and time in 'format' format.
+        str: with current date and time in 'time_format' format.
 
     """
-    time_string = camina.datetime_to_string(
+    time_string = convert.datetime_to_string(
         item = datetime.datetime.now(),
         time_format = time_format)
     if prefix is not None:
@@ -56,8 +57,8 @@ def how_soon_is_now(
     else:
         return time_string
 
-def timer(process: Callable[..., Optional[Any]]) -> (
-    Callable[..., Optional[Any]]):
+def timer(
+    process: Callable[..., Optional[Any]]) -> (Callable[..., Optional[Any]]):
     """Decorator for computing the length of time a process takes.
 
     Args:

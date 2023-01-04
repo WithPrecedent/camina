@@ -6,7 +6,7 @@ This package adds functionality to core Python container classes and provides fu
 ## Mappings
 * `Dictionary`: drop-in replacement for a python dict with an `add` method for a default mechanism of adding data, a `delete` method for a default mechanism of deleting data, and a `subset` method for returning a subset of the key/value pairs in a new `Dictionary`.
 * `Catalog`: wildcard-accepting dict which is intended for storing different options and strategies. It also returns lists of matches if a list of keys is provided.
-* `Library`: a chained mapping used for storing registered subclasses and instances.
+* `Library`: a dictionary that automatically supplies key names for stored items. The 'overwrite' argument determines if a unique key should always be created or whether entries may be overwritten.
 
 ## Sequences
 * `Listing`: drop-in replacement for a python list with an `add` method for a default mechanism of adding data, a `delete` method for a default mechanism of deleting data, and a `subset` method for returning a subset of the key/value pairs in a new `Listing`.
@@ -14,14 +14,6 @@ This package adds functionality to core Python container classes and provides fu
 
 ## Passthrough
 * `Proxy`: transparently wraps an object and directs access methods to access the wrapped object when appropriate (under construction for edge cases).
-  
-## Factories
-* `InstanceFactory`: mixin that stores all subclass instances in the `instances` class attribute and returns stored instances when the `create` classmethod is called.
-* `LibraryFactory`: mixin that stores all subclasses and subclass instances in the `library` class attribute and returns stored subclasses and/or instances when the `create` classmethod is called.
-* `SourceFactory`: mixin that calls the appropriate creation method based on the type of passed first argument to `create` and the types stored in the keys of the `sources` class attribute.
-* `StealthFactory`: mixin that returns stored subclasses when the `create` classmethod is called without having a `subclasses` class attribute like SubclassFactory.
-* `SubclassFactory`: mixin that stores all subclasses in the `subclasses` class attribute and returns stored subclasses when the `create` classmethod is called.
-* `TypeFactory`: mixin that calls the appropriate creation method based on the type of passed first argument to `create` and the snakecase name of the type. This factory is prone to significant key errors unless you are sure of the snakecase names of all possible submitted type names. SourceFactory avoids this problem by allowing you to declare corresponding types and string names.
 
 ## Converters
 
@@ -85,13 +77,6 @@ This package adds functionality to core Python container classes and provides fu
     * `snakify`: converts a capital case str to snake case.
     * `uniquify`: returns a unique key for a dict.
 
-## Registers
-* `registered`: a decorator that stores a registry in a `registry` attribute of the function or class which is wrapped by the decorator.
-* `Registrar`: a mixin for automatic subclass registration.
-
-## Validators
-* `bonafide`: decorator that validates or converts types based on type annotations of the wrapped function or dataclass (under construction)
-* 
-camina`s framework supports a wide range of coding styles. You can create complex multiple inheritance structures with mixins galore or simpler, compositional objects. Even though the data structures are necessarily object-oriented, all of the tools to modify them are also available as functions, for those who prefer a more funcitonal approaching to programming. 
+camina supports a wide range of coding styles. You can create complex multiple inheritance structures with mixins galore or simpler, compositional objects. Even though the data structures are necessarily object-oriented, all of the tools to modify them are also available as functions, for those who prefer a more funcitonal approaching to programming. 
 
 The project is also highly internally documented so that users and developers can easily make camina work with their projects. It is designed for Python coders at all levels. Beginners should be able to follow the readable code and internal documentation to understand how it works. More advanced users should find complex and tricky problems addressed through efficient code.

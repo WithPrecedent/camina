@@ -19,8 +19,13 @@ License: Apache-2.0
     
 ToDo:
     increase test coverage
- 
-
+    Fix Proxy setter. Currently, the wrapper and wrapped are not being set at
+        the right time, likely due to the inner workings of 'hasattr'.
+    Add more dunder methods to address less common and fringe cases for use
+        of a Proxy class. 
+    Add mechanisms for 'timer' to record results in logger and/or the python
+        terminal.
+        
 For Developers:
 
 As with all of my packages, I use Google-style docstrings and follow the Google 
@@ -46,7 +51,7 @@ any other package maintainer - I want to ensure the package is as accessible and
 useful as possible.
      
 """
-__version__ = '0.1.10'
+__version__ = '0.1.11'
 
 __package__ = 'camina'
 

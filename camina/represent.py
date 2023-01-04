@@ -191,7 +191,7 @@ def beautify_object(
         if hasattr(module, '__package__'):
             package = module.__package__
     if facade.name == 'object':
-        name = camina.namify(item = item)
+        name = camina.namify(item)
     else:
         name = ''
     base = camina.snakify(item.__class__.__name__)
@@ -217,7 +217,7 @@ def beautify_object(
     for attribute in attributes:
         contents = getattr(item, attribute)
         summary.append(f'{inner}{attribute}: {facade.start}')
-        summary.append(beautify(item = contents, offsets = inner_offsets))
+        summary.append(beautify(contents, offsets = inner_offsets))
     return ''.join(summary)
 
 def beautify_list(

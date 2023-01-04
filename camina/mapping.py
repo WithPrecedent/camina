@@ -22,23 +22,21 @@ Contents:
     Catalog (Dictionary): wildcard-accepting dict which is primarily intended 
         for storing different options and strategies. It also returns lists of 
         matches if a list of keys is provided.
-    Library (MutableMapping): a chained mapping used for registering subclasses
-        and instances.
+    Library (Dictionary): automatically stores items using inferred keys.
         
 ToDo:
 
        
 """
 from __future__ import annotations
-from collections.abc import (
-    Hashable, Iterator, Mapping, MutableMapping, Sequence)
+from collections.abc import Hashable, Mapping, MutableMapping, Sequence
 import copy
 import dataclasses
-import inspect
-from typing import Any, Optional, Type
+from typing import Any, Optional
 
 from . import base
 from . import convert
+from . import modify
                   
 
 _ALL_KEYS: list[Any] = ['all', 'All', ['all'], ['All']]
@@ -48,8 +46,8 @@ _DEFAULT_KEYS: list[Any] = [
 _NONE_KEYS: list[Any] = ['none', 'None', ['none'], ['None']]
 
 
-@dataclasses.dataclass  # type: ignore
-class Dictionary(base.Bunch, MutableMapping):  # type: ignore
+@dataclasses.dataclass 
+class Dictionary(base.Bunch, MutableMapping): 
     """Basic camina dict replacement.
     
     A Dictionary differs from an ordinary python dict in ways inherited from 
@@ -65,6 +63,7 @@ class Dictionary(base.Bunch, MutableMapping):  # type: ignore
         contents (MutableMapping[Hashable, Any]): stored dictionary. Defaults 
             to an empty dict.
         default_factory (Optional[Any]): default value to return or default 
+            callable to use to create the default value.
                           
     """
     contents: MutableMapping[Hashable, Any] = dataclasses.field(
@@ -113,7 +112,7 @@ class Dictionary(base.Bunch, MutableMapping):  # type: ignore
         """
         return cls(contents = dict.fromkeys(keys, value), **kwargs)
     
-    def get(self, key: Hashable, default: Optional[Any] = None) -> Any: # type: ignore
+    def get(self, key: Hashable, default: Optional[Any] = None) -> Any:
         """Returns value in 'contents' or default options.
         
         Args:
@@ -143,7 +142,7 @@ class Dictionary(base.Bunch, MutableMapping):  # type: ignore
             else:
                 return default
                 
-    def items(self) -> tuple[tuple[Hashable, Any], ...]: # type: ignore
+    def items(self) -> tuple[tuple[Hashable, Any], ...]:
         """Emulates python dict 'items' method.
         
         Returns:
@@ -152,7 +151,7 @@ class Dictionary(base.Bunch, MutableMapping):  # type: ignore
         """
         return tuple(zip(self.keys(), self.values()))
 
-    def keys(self) -> tuple[Hashable, ...]: # type: ignore
+    def keys(self) -> tuple[Hashable, ...]:
         """Returns 'contents' keys as a tuple.
         
         Returns:
@@ -161,7 +160,7 @@ class Dictionary(base.Bunch, MutableMapping):  # type: ignore
         """
         return tuple(self.contents.keys())
 
-    def setdefault(self, value: Any) -> None: # type: ignore
+    def setdefault(self, value: Any) -> None:
         """sets default value to return when 'get' method is used.
         
         Args:
@@ -201,10 +200,10 @@ class Dictionary(base.Bunch, MutableMapping):  # type: ignore
             if include is None:
                 contents = copy.deepcopy(self.contents)
             else:
-                include = list(convert.iterify(item = include)) 
+                include = list(convert.iterify(include)) 
                 contents = {k: self.contents[k] for k in include}
             if exclude is not None:
-                exclude = list(convert.iterify(item = exclude))
+                exclude = list(convert.iterify(exclude))
                 contents = {
                     k: v for k, v in contents.items() 
                     if k not in exclude}
@@ -212,7 +211,7 @@ class Dictionary(base.Bunch, MutableMapping):  # type: ignore
             new_dictionary.contents = contents
         return new_dictionary
       
-    def values(self) -> tuple[Any, ...]: # type: ignore
+    def values(self) -> tuple[Any, ...]:
         """Returns 'contents' values as a tuple.
         
         Returns:
@@ -247,7 +246,7 @@ class Dictionary(base.Bunch, MutableMapping):  # type: ignore
         return
     
 
-@dataclasses.dataclass  # type: ignore
+@dataclasses.dataclass 
 class Catalog(Dictionary):
     """Wildcard and list-accepting dictionary.
 
@@ -275,8 +274,8 @@ class Catalog(Dictionary):
     Args:
         contents (Mapping[Hashable, Any]]): stored dictionary. Defaults to an 
             empty dict.
-        default_factory (Any): default value to return when the 'get' method is 
-            used.
+        default_factory (Optional[Any]): default value to return or default 
+            callable to use to create the default value.
         default (Optional[Any]]): a list of keys in 'contents' which will be 
             used to return items when 'default' is sought. If not passed, 
             'default' will be set to all keys.
@@ -302,7 +301,7 @@ class Catalog(Dictionary):
                 'contents' to delete the key/value pair.
 
         """
-        keys = list(convert.iterify(item = item))
+        keys = list(convert.iterify(item))
         if all(k in self for k in keys):
             self.contents = {
                 i: self.contents[i] for i in self.contents if i not in keys}
@@ -373,196 +372,67 @@ class Catalog(Dictionary):
         try:
             self.contents[key] = value
         except TypeError:
-            self.contents.update(dict(zip(key, value))) # type: ignore
+            self.contents.update(dict(zip(key, value)))
         return
 
 
-@dataclasses.dataclass  # type: ignore
-class Library(MutableMapping):
-    """Stores classes instances and classes in a chained mapping.
+@dataclasses.dataclass 
+class Library(Dictionary):
+    """Dictionary with inferred keys based on items added.
     
-    When searching for matches, instances are prioritized over classes.
+    A Library differs from an ordinary python dict in ways inherited from 
+    Dictionary. In addition, it differs in 1 other significant way:
+        1) The 'add' method relies on the internal '_get_name' method to assign 
+            a str key for the passed item.
     
     Args:
-        classes (Catalog): a catalog of stored classes. Defaults to any empty
-            Catalog.
-        instances (Catalog): a catalog of stored class instances. Defaults to an
-            empty Catalog.
-                 
+        contents (MutableMapping[Hashable, Any]): stored dictionary. Defaults 
+            to an empty dict.
+        default_factory (Optional[Any]): default value to return or default 
+            callable to use to create the default value.
+        overwrite (Optional[bool]): whether to overwrite existing items in the
+            stored dictionary with the same inferred keys (True) or 
+            automatically infer a new key based upon a counter suffix (False).
+            Defaults to False.
+                          
     """
-    classes: Catalog[str, Type[Any]] = dataclasses.field(
-        default_factory = Catalog)
-    instances: Catalog[str, object] = dataclasses.field(
-        default_factory = Catalog)
+    contents: MutableMapping[Hashable, Any] = dataclasses.field(
+        default_factory = dict)
+    default_factory: Optional[Any] = None
+    overwrite: Optional[bool] = False
         
-    """ Public Methods """
-    
-    def deposit(
-        self, 
-        item: Type[Any] | object,
-        name: Optional[Hashable] = None) -> None:
-        """Adds 'item' to 'classes' and/or 'instances'.
+    """ Instance Methods """
 
-        If 'item' is a class, it is added to 'classes.' If it is an object, it
-        is added to 'instances' and its class is added to 'classes'. The key
-        used to store instances and classes are different if the instance has
-        a 'name' attribute (which is used as the key for the instance).
+    def add(self, item: Any, key: Optional[str] = None, **kwargs: Any) -> None:
+        """Adds 'item' to the 'contents' attribute.
         
         Args:
-            item (Type[Any] | object): class or instance to add to the 
-                Library instance.
-            name (Optional[Hashable]): key to use to store 'item'. If not
-                passed, a key will be created using the 'namify' method.
-                Defaults to None
+            item (Any): item to add to 'contents' attribute.
+            key (Optional[str]): key to use for 'item' if the user does not want
+                the key to be inferred.
+            kwargs: creates a consistent interface even when subclasses have
+                additional parameters.
                 
         """
-        key = name or convert.namify(item = item)
-        if inspect.isclass(item):
-            self.classes[key] = item
-        elif isinstance(item, object):
-            self.instances[key] = item
-            # Key for the class will be different because it is inferred from
-            # the class and not any attributes.
-            self.deposit(item = item.__class__)
-        else:
-            raise TypeError(f'item must be a class or a class instance')
+        key = key or self._get_name(item = item)
+        if not self.overwrite:
+            key = modify.uniquify(key = key, dictionary = self)
+        self.contents.update({key: item}, **kwargs)
         return
     
-    def delete(self, item: Hashable) -> None:
-        """Removes an item from 'instances' or 'classes.'
-        
-        If 'item' is found in 'instances', it will not also be removed from 
-        'classes'.
-
-        Args:
-            item (Hashable): key name of item to remove.
-            
-        Raises:
-            KeyError: if 'item' is neither found in 'instances' or 'classes'.
-
-        """
-        try:
-            del self.instances[item]
-        except KeyError:
-            try:
-                del self.classes[item]
-            except KeyError:
-                raise KeyError(f'{item} is not found in the Library')
-        return    
-
-    def withdraw(
-        self, 
-        item: Hashable | Sequence[Hashable], 
-        parameters: Optional[MutableMapping[Hashable, Any]] = None) -> (
-            Type[Any] | object):
-        """Returns instance or class of first match of 'item' from catalogs.
-        
-        The method prioritizes the 'instances' catalog over 'classes' and any
-        passed names in the order they are listed.
-        
-        An instance will be returned so long as 'parameters' is not None. 
-        
-        Args:
-            item (Hashable | Sequence[Hashable]): key name(s) of stored 
-                item(s) sought.
-            parameters (Optional[MutableMapping[Hashable, Any]]]): keyword 
-                arguments to pass to a newly created instance or, if the stored 
-                item is already an instance to be manually added as attributes. 
-                If not passed, the found item will be returned unaltered. 
-                Defaults to None.
-            
-        Raises:
-            KeyError: if 'item' does not match a key to a stored item in either
-                'instances' or 'classes'.
-            
-        Returns:
-            Type[Any] | object: returns a class or instance if 'parameters' 
-                are None, depending upon with Catalog the matching item is 
-                found. If 'parameters' are passed, an instance is always 
-                returned.
-            
-        """
-        items = list(convert.iterify(item))
-        item = None
-        for key in items:
-            for catalog in ['instances', 'classes']:
-                try:
-                    item = getattr(self, catalog)[key]
-                    break
-                except KeyError:
-                    pass
-            if item is not None:
-                break
-        if item is None:
-            raise KeyError(f'No matching item for {item} was found')
-        if parameters is not None:
-            if ('name' in item.__annotations__.keys() 
-                    and 'name' not in parameters):
-                parameters['name'] = items[0]
-            if inspect.isclass(item):
-                return item(**parameters)
-            else:
-                instance = copy.deepcopy(item)
-                for key, value in parameters.items():
-                    setattr(instance, key, value)
-                return instance
-        return item # type: ignore
+    """ Private Methods """
     
-    """ Dunder Methods """
+    def _get_name(self, item: Any) -> str:
+        """Infers key name for 'item'
 
-    def __getitem__(self, key: Hashable) -> Any:
-        """Returns value for 'key' in 'contents'.
-
+        By default, this method uses the 'namify' function in camina. Override
+        this method to use a different naming function.
+        
         Args:
-            key (Hashable): key in 'contents' for which a value is sought.
+            item (Any): item to infer the name for.
 
         Returns:
-            Any: value stored in 'contents'.
-
-        """
-        return self.withdraw(item = key)
-
-    def __setitem__(self, key: Hashable, value: Any) -> None:
-        """sets 'key' in 'contents' to 'value'.
-
-        Args:
-            key (Hashable): key to set in 'contents'.
-            value (Any): value to be paired with 'key' in 'contents'.
-
-        """
-        self.deposit(item = value, name = key)
-        return
-    
-    def __delitem__(self, item: Hashable) -> None:
-        """Deletes 'item' from 'contents'.
-        
-        Args:
-            item (Any): item or key to delete in 'contents'.
-        
-        Raises:
-            KeyError: if 'item' is not in 'contents'.
+            str: inferred name.
             
         """
-        self.delete(item = item)
-        return
-    
-    def __iter__(self) -> Iterator[Any]:
-        """Returns iterable of 'contents'.
-
-        Returns:
-            Iterator: of 'contents'.
-
-        """
-        combined = copy.deepcopy(self.instances)
-        return iter(combined.update(self.classes))
-
-    def __len__(self) -> int:
-        """Returns length of 'contents'.
-
-        Returns:
-            int: length of 'contents'.
-
-        """
-        combined = copy.deepcopy(self.instances)
-        return len(combined.update(self.classes))
-    
+        return convert.namify(item)

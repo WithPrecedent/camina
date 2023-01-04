@@ -17,18 +17,13 @@ License: Apache-2.0
     limitations under the License.
 
 Contents:
-    Bunch (Collection, Protocol): base class for general containers in camina. 
+    Bunch (Collection, abc.ABC): base class for general containers in camina. 
         It requires subclasses to have 'add', 'delete', and 'subset' methods.
-    Composite (Bunch, Protocol): base class for camina composite data 
-        structures. Requires 'append', 'delete', 'merge', 'prepend', and 'walk' 
-        methods.
-    Proxy (Container, Protocol): basic wrapper for a stored python object. 
-        Dunder methods attempt to intelligently apply access methods to either 
-        the wrapper or the wrapped item.   
+    Proxy (Container): basic wrapper for a stored python object. Dunder methods 
+        attempt to intelligently apply access methods to either the wrapper or 
+        the wrapped item.   
           
 To Do:
-    Integrate Kinds system when it is finished.
-    Restore 'beautify' str representations once those are finished.
     Fix Proxy setter. Currently, the wrapper and wrapped are not being set at
         the right time, likely due to the inner workings of 'hasattr'.
     Add more dunder methods to address less common and fringe cases for use
@@ -39,12 +34,11 @@ from __future__ import annotations
 import abc
 from collections.abc import Collection, Container, Hashable, Iterator
 import dataclasses
-from typing import Any, Optional, Protocol, runtime_checkable
+from typing import Any, Optional
 
   
-@dataclasses.dataclass # type: ignore
-@runtime_checkable
-class Bunch(Collection, Protocol): # type: ignore
+@dataclasses.dataclass
+class Bunch(Collection, abc.ABC):
     """Base class for general camina collections.
   
     A Bunch differs from a general python Collection in 4 ways:
@@ -167,64 +161,10 @@ class Bunch(Collection, Protocol): # type: ignore
 
         """
         return len(self.contents)  
-    
-          
-@dataclasses.dataclass
-@runtime_checkable
-class Composite(Bunch, Protocol):
-    """Base class for composite data structures.
-    
-    Args:
-        contents (Collection[Any]): stored collection of nodes and/or edges.
-                                     
-    """  
-    contents: Collection[Any]
-    
-                 
-    """ Required Subclass Methods """
-    
-    @abc.abstractmethod
-    def connect(self, start: Hashable, stop: Hashable) -> None:
-        """Creates a new edge in the stored graph.
-
-        Args:
-            start (Hashable): starting node for the new edge.
-            stop (Hashable): ending node for the new edge.
-        
-        Raises:
-            KeyError: if 'start' or 'stop' are not a nodes in the stored graph.
-
-        """
-        pass  
-    
-    @abc.abstractmethod
-    def disconnect(self, start: Hashable, stop: Hashable) -> None:
-        """Deletes edge from the stored graph.
-
-        Args:
-            start (Hashable): starting node for the edge to delete.
-            stop (Hashable): ending node for the edge to delete.
-        
-        Raises:
-            KeyError: if 'start' or 'stop' are not a nodes in the stored graph.
-
-        """
-        pass  
-  
-    @abc.abstractmethod
-    def merge(self, item: Composite, *args: Any, **kwargs: Any) -> None:
-        """Combines 'item' with the stored composite object.
-
-        Args:
-            item (Composite): another Composite object to add to the stored 
-                composite object.
-                
-        """
-        pass
 
 
 @dataclasses.dataclass
-class Proxy(Container): # type: ignore
+class Proxy(Container):
     """Mostly transparent wrapper class.
     
     A Proxy differs than an ordinary container in 2 significant ways:
@@ -287,53 +227,61 @@ class Proxy(Container): # type: ignore
             Any: matching attribute from 'contents'.
 
         """
-        try:
-            return object.__getattribute__(
-                object.__getattribute__(self, 'contents'), attribute)
-        except AttributeError:
-            raise AttributeError(
-                f'{attribute} was not found in '
-                f'{object.__getattribute__(self, "__name__")}') 
+        return getattr(self.contents, attribute)
+        # try:
+        #     return object.__getattribute__(
+        #         object.__getattribute__(self, 'contents'), attribute)
+        # except AttributeError:
+        #     print('test no attribute in proxy', attribute)
+        #     try:
+        #         return object.__getattribute__(self, attribute)
+        #     except AttributeError:
+        #         raise AttributeError(
+        #             f'{attribute} was not found in '
+        #             f'{object.__getattribute__(self, "__name__")}') 
 
-    def __setattr__(self, attribute: str, value: Any) -> None:
-        """Sets 'attribute' to 'value'.
+    # def __setattr__(self, attribute: str, value: Any) -> None:
+    #     """Sets 'attribute' to 'value'.
         
-        If 'attribute' exists in this class instance, its new value is set to
-        'value.' Otherwise, 'attribute' and 'value' are set in what is stored
-        in 'contents', whether the attribute previously existed in 'contents'.
+    #     If 'attribute' exists in this class instance, its new value is set to
+    #     'value.' Otherwise, 'attribute' and 'value' are set in what is stored
+    #     in 'contents', whether the attribute previously existed in 'contents'.
 
-        Args:
-            attribute (str): name of attribute to set.
-            value (Any): value to store in the attribute 'attribute'.
+    #     Args:
+    #         attribute (str): name of attribute to set.
+    #         value (Any): value to store in the attribute 'attribute'.
 
-        """
-        if hasattr(self, attribute) or self.contents is None:
-            object.__setattr__(self, attribute, value)
-        else:
-            object.__setattr__(self.contents, attribute, value)
+    #     """
+    #     print('test hasattr', self, attribute)
+    #     if self.contents is None or attribute not in dir(self.contents):
+    #         print('test setting wrapper', value)
+    #         object.__setattr__(self, attribute, value)
+    #     else:
+    #         print('test setting wrapped', value)
+    #         object.__setattr__(self.contents, attribute, value)
             
-    def __delattr__(self, attribute: str) -> None:
-        """Deletes 'attribute'.
+    # def __delattr__(self, attribute: str) -> None:
+    #     """Deletes 'attribute'.
         
-        If 'attribute' exists in this class instance, it is deleted. Otherwise, 
-        this method attempts to delete 'attribute' from what is stored in 
-        'contents'.
+    #     If 'attribute' exists in this class instance, it is deleted. Otherwise, 
+    #     this method attempts to delete 'attribute' from what is stored in 
+    #     'contents'.
 
-        Args:
-            attribute (str): name of attribute to set.
+    #     Args:
+    #         attribute (str): name of attribute to set.
 
-        Raises:
-            AttributeError: if 'attribute' is neither found in the Proxy 
-                subclass nor in 'contents'.
+    #     Raises:
+    #         AttributeError: if 'attribute' is neither found in the Proxy 
+    #             subclass nor in 'contents'.
             
-        """
-        try:
-            object.__delattr__(self, attribute)
-        except AttributeError:
-            try:
-                object.__delattr__(self.contents, attribute)
-            except AttributeError:
-                raise AttributeError(
-                    f'{attribute} was not found in '
-                    f'{object.__getattribute__(self, "__name__")}')  
+    #     """
+    #     try:
+    #         object.__delattr__(self, attribute)
+    #     except AttributeError:
+    #         try:
+    #             object.__delattr__(self.contents, attribute)
+    #         except AttributeError:
+    #             raise AttributeError(
+    #                 f'{attribute} was not found in '
+    #                 f'{object.__getattribute__(self, "__name__")}')  
                    

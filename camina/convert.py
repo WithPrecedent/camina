@@ -24,15 +24,22 @@ be:
     f'to_{output type}'
      
 Contents:
-    instancify: converts a class to an instance or adds kwargs to a passed 
-        instance as attributes.
-    listify: converts passed item to a list.
+    dictify: converts to or validates a dict.
+    hashify: converts to or validates a hashable object.
+    instancify: converts to or validates an instance. If it is already an
+        instance, any passed kwargs are added as attributes to the instance.
+    integerify: converts to or validates an int. 
+    iterify: converts to or validates an iterable.
+    kwargify: uses annotations to turn positional arguments into keyword 
+        arguments.
+    listify: converts to or validates a list.
     namify: returns hashable name for passed item.
-    numify: attempts to convert passed item to a numerical type.
-    pathlibify: converts a str to a pathlib object or leaves it as
-        a pathlib object.
-    tuplify: converts a passed item to a tuple.
+    numify: converts to or validates a numerical type.
+    pathlibify: converts to or validates a pathlib.Path.
+    stringify: converts to or validates a str.
+    tuplify: converts to or validates a tuple.
     typify: converts a str type to other common types, if possible.
+    windowify: Returns a sliding window of length 'n' over 'item'.
     to_dict:
     to_index
     str_to_index
@@ -62,9 +69,9 @@ from __future__ import annotations
 import ast
 import collections
 from collections.abc import (
-    Collection, Hashable, Iterable, Mapping, MutableMapping, MutableSequence, 
-    Sequence, Set)
+    Hashable, Iterable, MutableMapping, MutableSequence, Sequence)
 import datetime
+import functools
 import inspect
 import itertools
 import pathlib
@@ -74,6 +81,59 @@ from . import modify
 
 
 """ General Converters """
+
+@functools.singledispatch  
+def dictify(item: Any) -> MutableMapping[Hashable, Any]:
+    """Converts 'item' to a MutableMapping.
+    
+    Args:
+        item (Any): item to convert to a MutableMapping.
+
+    Raises:
+        TypeError: if 'item' is a type that is not registered.
+
+    Returns:
+        MutableMapping: derived from 'item'.
+
+    """
+    if isinstance(item, MutableMapping):
+        return item
+    else:
+        raise TypeError(
+        f'item cannot be converted because it is an unsupported type: '
+        f'{type(item).__name__}')
+ 
+@functools.singledispatch   
+def hashify(item: Any) -> Hashable:
+    """Converts 'item' to a Hashable.
+    
+    Args:
+        item (Any): item to convert to a Hashable.
+
+    Raises:
+        TypeError: if 'item' is a type that is not registered.
+
+    Returns:
+        Hashable: derived from 'item'.
+
+    """
+    if isinstance(item, Hashable):
+        return item
+    else:
+        try:
+            return hash(item)
+        except TypeError:
+            try:
+                return str(item)
+            except TypeError:
+                try:
+                    return modify.snakify(item.__name__)
+                except AttributeError:
+                    return modify.snakify(item.__class__.__name__)
+                except AttributeError:
+                    raise TypeError(f'item cannot be converted because it is ' 
+                                    f'an unsupported type: '
+                                    f'{type(item).__name__}')
 
 def instancify(item: Type[Any] | object, **kwargs: Any) -> Any:
     """Returns 'item' as an instance with 'kwargs' as parameters/attributes.
@@ -95,14 +155,36 @@ def instancify(item: Type[Any] | object, **kwargs: Any) -> Any:
         
     """         
     if inspect.isclass(item):
-        return item(**kwargs) # type: ignore
+        return item(**kwargs)
     elif isinstance(item, object):
         for key, value in kwargs.items():
             setattr(item, key, value)
         return item
     else:
         raise TypeError('item must be a class or class instance')
-                  
+
+@functools.singledispatch  
+def integerify(item: Any) -> int:
+    """Converts 'item' to an int.
+    
+    Args:
+        item (Any): item to convert.
+
+    Raises:
+        TypeError: if 'item' is a type that cannot be converted.
+
+    Returns:
+        int: derived from 'item'.
+
+    """
+    if isinstance(item, int):
+        return item
+    else:
+        raise TypeError(
+            f'item cannot be converted because it is an '
+            f'unsupported type: {type(item).__name__}')
+
+@functools.singledispatch                  
 def iterify(item: Any) -> Iterable:
     """Returns 'item' as an iterable, but does not iterate str types.
     
@@ -128,9 +210,9 @@ def kwargify(item: Type[Any], args: tuple[Any]) -> dict[Hashable, Any]:
     """Converts args to kwargs.
     
     Args:
+    item (Type): the item with annotations used to construct kwargs.
         args (tuple): arguments without keywords passed to 'item'.
-        item (Type): the item with annotations used to construct kwargs.
-    
+        
     Raises:
         ValueError: if there are more args than annotations in 'item'.
         
@@ -143,7 +225,8 @@ def kwargify(item: Type[Any], args: tuple[Any]) -> dict[Hashable, Any]:
         raise ValueError('There are too many args for item')
     else:
         return dict(zip(annotations, args))
-    
+
+@functools.singledispatch   
 def listify(item: Any, default: Optional[Any] = None) -> Any:
     """Returns passed item as a list (if not already a list).
 
@@ -199,7 +282,8 @@ def namify(item: Any, default: Optional[str] = None) -> Optional[str]:
                 return modify.snakify(item.__class__.__name__) 
             else:
                 return default
-                            
+
+@functools.singledispatch                            
 def numify(item: Any, raise_error: bool = False) -> int | float | Any:
     """Converts 'item' to a numeric type.
     
@@ -231,7 +315,8 @@ def numify(item: Any, raise_error: bool = False) -> int | float | Any:
                     f'{item} not able to be converted to a numeric type')
             else:
                 return item
-
+            
+@functools.singledispatch
 def pathlibify(item: str | pathlib.Path) -> pathlib.Path:
     """Converts string 'path' to pathlib.Path object.
 
@@ -252,7 +337,8 @@ def pathlibify(item: str | pathlib.Path) -> pathlib.Path:
         return item
     else:
         raise TypeError('item must be str or pathlib.Path type')
-           
+    
+@functools.singledispatch           
 def stringify(item: Any, default: Optional[Any] = None) -> Any:
     """Converts 'item' to a str from a Sequence.
     
@@ -283,7 +369,8 @@ def stringify(item: Any, default: Optional[Any] = None) -> Any:
         return ', '.join(item)
     else:
         raise TypeError('item must be str or a sequence')
-    
+
+@functools.singledispatch    
 def tuplify(item: Any, default: Optional[Any] = None) -> Any:
     """Returns passed item as a tuple (if not already a tuple).
 
@@ -352,7 +439,7 @@ def windowify(
     length: int, 
     fill_value: Optional[Any] = None, 
     step: Optional[int] = 1) -> Sequence[Any]:
-    """Return a sliding window of length 'n' over 'item'.
+    """Returns a sliding window of length 'n' over 'item'.
 
     This code is adapted from more_itertools.windowed to remove a dependency.
    
@@ -395,116 +482,30 @@ def windowify(
                                          
 """ Specific Converters """
 
-# @camina.dynamic.dispatcher   
-def to_dict(item: Any) -> MutableMapping[Hashable, Any]:
-    """Converts 'item' to a MutableMapping.
+@integerify.register
+def float_to_int(item: float) -> int:
+    """Converts 'item' to an int.
     
     Args:
-        item (Any): item to convert to a MutableMapping.
-
-    Raises:
-        TypeError: if 'item' is a type that is not registered.
-
-    Returns:
-        MutableMapping: derived from 'item'.
-
-    """
-    if isinstance(item, MutableMapping):
-        return item
-    else:
-        raise TypeError(
-            f'item cannot be converted because it is an unsupported type: '
-            f'{type(item).__name__}')
-
-# @camina.dynamic.dispatcher   
-def to_index(item: Any) -> Hashable:
-    """Converts 'item' to an Hashable.
-    
-    Args:
-        item (Any): item to convert to a Hashable.
-
-    Raises:
-        TypeError: if 'item' is a type that is not registered.
-
-    Returns:
-        Hashable: derived from 'item'.
-
-    """
-    if isinstance(item, Hashable):
-        return item
-    else:
-        try:
-            return hash(item)
-        except TypeError:
-            try:
-                return str(item)
-            except TypeError:
-                try:
-                    return modify.snakify(item.__name__)
-                except AttributeError:
-                    return modify.snakify(item.__class__.__name__)
-                except AttributeError:
-                    raise TypeError(f'item cannot be converted because it is ' 
-                                    f'an unsupported type: '
-                                    f'{type(item).__name__}')
-
-# @to_index.register # type: ignore
-def str_to_index(item: str) -> Hashable:
-    """[summary]
-
-    Args:
-        item (str): [description]
-
-    Returns:
-        Hashable: [description]
-    """    
-    """Converts a str to an Hashable."""
-    return item
-
-# @camina.dynamic.dispatcher   
-def to_int(item: Any) -> int:
-    """Converts 'item' to a pathlib.Path.
-    
-    Args:
-        item (Any): item to convert to a int.
-
-    Raises:
-        TypeError: if 'item' is a type that is not registered.
-
+        item (float): item to convert.
+        
     Returns:
         int: derived from 'item'.
-
-    """
-    if isinstance(item, int):
-        return item
-    else:
-        raise TypeError(f'item cannot be converted because it is an '
-                        f'unsupported type: {type(item).__name__}')
-
-# @to_int.register # type: ignore
-def str_to_int(item: str) -> int:
-    """[summary]
-
-    Args:
-        item (str): [description]
-
-    Returns:
-        int: [description]
-    """    
-    """Converts a str to an int."""
+        
+    """ 
     return int(item)
 
-# @to_int.register # type: ignore
-def float_to_int(item: float) -> int:
-    """[summary]
-
+@integerify.register
+def str_to_int(item: str) -> int:
+    """Converts 'item' to an int.
+    
     Args:
-        item (float): [description]
-
+        item (str): item to convert.
+        
     Returns:
-        int: [description]
+        int: derived from 'item'.
+        
     """    
-    """Converts a float to an int."""
     return int(item)
 
 # @camina.dynamic.dispatcher   
@@ -528,7 +529,7 @@ def to_list(item: Any) -> list[Any]:
             f'item cannot be converted because it is an unsupported type: '
             f'{type(item).__name__}')
 
-# @to_list.register # type: ignore
+# @to_list.register
 def str_to_list(item: str) -> list[Any]:
     """[summary]
 
@@ -562,7 +563,7 @@ def to_float(item: Any) -> float:
             f'item cannot be converted because it is an unsupported type: '
             f'{type(item).__name__}')
 
-# @to_float.register # type: ignore
+# @to_float.register
 def int_to_float(item: int) -> float:
     """[summary]
 
@@ -575,7 +576,7 @@ def int_to_float(item: int) -> float:
     """Converts an int to a float."""
     return float(item)
 
-# @to_float.register # type: ignore
+# @to_float.register
 def str_to_float(item: str) -> float:
     """[summary]
 
@@ -609,7 +610,7 @@ def to_path(item: Any) -> pathlib.Path:
             f'item cannot be converted because it is an unsupported type: '
             f'{type(item).__name__}')
 
-# @to_path.register # type: ignore   
+@pathlibify.register  
 def str_to_path(item: str) -> pathlib.Path:
     """[summary]
 
@@ -643,7 +644,7 @@ def to_str(item: Any) -> str:
             f'item cannot be converted because it is an unsupported type: '
             f'{type(item).__name__}')
 
-# @to_str.register # type: ignore
+# @to_str.register
 def int_to_str(item: int) -> str:
     """[summary]
 
@@ -656,7 +657,7 @@ def int_to_str(item: int) -> str:
     """Converts an int to a str."""
     return str(item)
 
-# @to_str.register # type: ignore
+# @to_str.register
 def float_to_str(item: float) -> str:
     """[summary]
 
@@ -669,7 +670,7 @@ def float_to_str(item: float) -> str:
     """Converts an float to a str."""
     return str(item)
 
-# @to_str.register # type: ignore
+# @to_str.register
 def list_to_str(item: list[Any]) -> str:
     """[summary]
 
@@ -695,21 +696,33 @@ def none_to_str(item: None) -> str:
     """Converts None to a str."""
     return 'None'
 
-# @to_str.register # type: ignore
+# @to_str.register
 def path_to_str(item: pathlib.Path) -> str:
-    """[summary]
+    """Converts a pathlib.Path to a str.
 
     Args:
         item (pathlib.Path): [description]
 
     Returns:
         str: [description]
+        
     """    
-    """Converts a pathlib.Path to a str."""
     return str(item)
 
-# @to_str.register # type: ignore
+# @to_str.register
 def datetime_to_string(
     item: datetime.datetime,
-    time_format: str = '%Y-%m-%d_%H-%M') -> str:
+    time_format: Optional[str] = '%Y-%m-%d_%H-%M') -> str:
+    """ Return datetime 'item' as a str based on 'time_format'.
+    
+    Args:
+        item (datetime.datetime): datetime object to convert to a str.
+        time_format (Optional[str]): format to create a str from datetime. The
+            passed argument should follow the rules of datetime.strftime. 
+            Defaults to '%Y-%m-%d_%H-%M'.
+            
+    Returns:
+        str: converted datetime 'item'.
+            
+    """
     return item.strftime(time_format)

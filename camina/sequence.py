@@ -38,8 +38,8 @@ from . import base
 from . import convert
 
                           
-@dataclasses.dataclass # type: ignore
-class Listing(base.Bunch, MutableSequence): # type: ignore
+@dataclasses.dataclass
+class Listing(base.Bunch, MutableSequence):
     """Basic camina list replacement.
     
     A Listing differs from an ordinary python list in ways required by 
@@ -144,10 +144,10 @@ class Listing(base.Bunch, MutableSequence): # type: ignore
             if include is None:
                 contents = copy.deepcopy(self.contents)
             else:
-                include = list(convert.iterify(item = include))
+                include = list(convert.iterify(include))
                 contents = [i for i in self.contents if i in include]
             if exclude is not None:
-                exclude = list(convert.iterify(item = exclude))
+                exclude = list(convert.iterify(exclude))
                 contents = [i for i in contents if i not in exclude]
             new_listing = copy.deepcopy(self)
             new_listing.contents = contents
@@ -179,7 +179,7 @@ class Listing(base.Bunch, MutableSequence): # type: ignore
         return
 
 
-@dataclasses.dataclass # type: ignore
+@dataclasses.dataclass
 class Hybrid(Listing):
     """Iterable that has both a dict and list interfaces.
     
@@ -245,7 +245,7 @@ class Hybrid(Listing):
                 c for c in self.contents if convert.namify(c) != item]
         return
     
-    def get(self, key: Hashable, default: Optional[Any] = None) -> Any: # type: ignore
+    def get(self, key: Hashable, default: Optional[Any] = None) -> Any:
         """Returns value in 'contents' or default options.
         
         Args:
@@ -296,9 +296,9 @@ class Hybrid(Listing):
                 any duplicate keys, which are permitted by Hybrid.
             
         """
-        return tuple([convert.namify(item = c) for c in self.contents])
+        return tuple([convert.namify(c) for c in self.contents])
 
-    def setdefault(self, value: Any) -> None: # type: ignore
+    def setdefault(self, value: Any) -> None:
         """sets default value to return when 'get' method is used.
         
         Args:
@@ -336,7 +336,7 @@ class Hybrid(Listing):
 
     """ Dunder Methods """
 
-    def __getitem__(self, key: Hashable | int) -> Any: # type: ignore
+    def __getitem__(self, key: Hashable | int) -> Any:
         """Returns value(s) for 'key' in 'contents'.
         
         If 'key' is not an int type, this method looks for a matching 'name'
@@ -362,18 +362,8 @@ class Hybrid(Listing):
         if isinstance(key, int):
             return self.contents[key]
         else:
-            
             matches = [
-                c for c in self.contents if convert.namify(item = c) == key]
-            # matches = []
-            # for value in self.contents:
-            #     if (
-            #         hash(value) == key 
-            #         or trait.namify(item = value) == key):
-            #         matches.append(value)
-            # matches = [
-            #     i for i, c in enumerate(self.contents)
-            #     if trait.namify(c) == key]
+                c for c in self.contents if convert.namify(c) == key]
             if len(matches) == 0:
                 raise KeyError(f'{key} is not in {self.__class__.__name__}')
             elif len(matches) == 1:
