@@ -94,7 +94,7 @@ def add_prefix_to_str(item: str, prefix: str, divider: str = '') -> str:
     """
     return divider.join([prefix, item])
  
-@add_prefix.register
+@add_prefix.register(Mapping)
 def add_prefix_to_dict(
     item: Mapping[str, Any],  
     prefix: str, 
@@ -120,7 +120,7 @@ def add_prefix_to_dict(
         vessel = item.__class__
         return vessel(contents)
  
-@add_prefix.register
+@add_prefix.register(MutableSequence)
 def add_prefix_to_list(
     item: MutableSequence[str], 
     prefix: str, 
@@ -145,7 +145,7 @@ def add_prefix_to_list(
         vessel = item.__class__
         return vessel(contents)
  
-@add_prefix.register
+@add_prefix.register(Set)
 def add_prefix_to_set(
     item: Set[str], 
     prefix: str, 
@@ -170,7 +170,7 @@ def add_prefix_to_set(
         vessel = item.__class__
         return vessel(contents)
 
-@add_prefix.register
+@add_prefix.register(tuple)
 def add_prefix_to_tuple(
     item: tuple[str, ...], 
     prefix: str, 
@@ -260,7 +260,7 @@ def add_suffix_to_str(item: str, suffix: str, divider: str = '') -> str:
     """
     return divider.join([item, suffix])
  
-@add_suffix.register
+@add_suffix.register(Mapping)
 def add_suffix_to_dict(
     item: Mapping[str, Any], 
     suffix: str, 
@@ -286,7 +286,7 @@ def add_suffix_to_dict(
         vessel = item.__class__
         return vessel(contents)
  
-@add_suffix.register
+@add_suffix.register(MutableSequence)
 def add_suffix_to_list(
     item: MutableSequence[str], 
     suffix: str, 
@@ -311,7 +311,7 @@ def add_suffix_to_list(
         vessel = item.__class__
         return vessel(contents)
  
-@add_suffix.register
+@add_suffix.register(Set)
 def add_suffix_to_set(
     item: Set[str], 
     suffix: str, 
@@ -336,7 +336,7 @@ def add_suffix_to_set(
         vessel = item.__class__
         return vessel(contents)
 
-@add_suffix.register
+@add_suffix.register(tuple)
 def add_suffix_to_tuple(
     item: tuple[str, ...], 
     suffix: str, 
@@ -490,7 +490,7 @@ def deduplicate(item: Any) -> Any:
     """
     raise TypeError(f'item is not a supported type for {__name__}')
 
-@deduplicate.register
+@deduplicate.register(MutableSequence)
 def deduplicate_list(item: MutableSequence[Any]) -> MutableSequence[Any]:
     """Deduplicates contents of 'item.
     
@@ -508,7 +508,7 @@ def deduplicate_list(item: MutableSequence[Any]) -> MutableSequence[Any]:
         vessel = item.__class__(contents)
         return vessel(contents)
 
-@deduplicate.register
+@deduplicate.register(tuple)
 def deduplicate_tuple(item: tuple[Any, ...]) -> tuple[Any, ...]:
     """Deduplicates contents of 'item.
     
@@ -580,7 +580,7 @@ def drop_prefix_from_str(item: str, prefix: str, divider: str = '') -> str:
     else:
         return item
 
-@drop_prefix.register
+@drop_prefix.register(Mapping)
 def drop_prefix_from_dict(
     item: Mapping[str, Any], 
     prefix: str, 
@@ -606,7 +606,7 @@ def drop_prefix_from_dict(
         vessel = item.__class__
         return vessel(contents)
 
-@drop_prefix.register
+@drop_prefix.register(MutableSequence)
 def drop_prefix_from_list(
     item: MutableSequence[str], 
     prefix: str, 
@@ -631,7 +631,7 @@ def drop_prefix_from_list(
         vessel = item.__class__
         return vessel(contents)
 
-@drop_prefix.register
+@drop_prefix.register(Set)
 def drop_prefix_from_set(
     item: Set[str], 
     prefix: str, 
@@ -656,7 +656,7 @@ def drop_prefix_from_set(
         vessel = item.__class__
         return vessel(contents)  
 
-@drop_prefix.register
+@drop_prefix.register(tuple)
 def drop_prefix_from_tuple(
     item: tuple[str, ...], 
     prefix: str, 
@@ -727,7 +727,7 @@ def drop_substring_from_str(item: str, substring: str) -> str:
     else:
         return item
 
-@drop_substring.register
+@drop_substring.register(Mapping)
 def drop_substring_from_dict(
     item: Mapping[str, Any], 
     substring: str) -> Mapping[str, Any]:
@@ -750,7 +750,7 @@ def drop_substring_from_dict(
         vessel = item.__class__
         return vessel(contents)
 
-@drop_substring.register
+@drop_substring.register(MutableSequence)
 def drop_substring_from_list(
     item: MutableSequence[str], 
     substring: str) -> MutableSequence[str]:
@@ -771,7 +771,7 @@ def drop_substring_from_list(
         vessel = item.__class__
         return vessel(contents)
 
-@drop_substring.register
+@drop_substring.register(Set)
 def drop_substring_from_set(item: Set[str], substring: str) -> Set[str]:
     """Drops 'substring' from items in 'item'.
     
@@ -790,7 +790,7 @@ def drop_substring_from_set(item: Set[str], substring: str) -> Set[str]:
         vessel = item.__class__
         return vessel(contents)  
 
-@drop_substring.register 
+@drop_substring.register(tuple)
 def drop_substring_from_tuple(
     item: tuple[str, ...], 
     substring: str) -> tuple[str, ...]:
@@ -842,7 +842,7 @@ def drop_suffix_from_str(item: str, suffix: str, divider: str = '') -> str:
     else:
         return item
 
-@drop_suffix.register
+@drop_suffix.register(Mapping)
 def drop_suffix_from_dict(
     item: Mapping[str, Any], 
     suffix: str, 
@@ -866,7 +866,7 @@ def drop_suffix_from_dict(
         vessel = item.__class__
         return vessel(contents)
 
-@drop_suffix.register
+@drop_suffix.register(MutableSequence)
 def drop_suffix_from_list(
     item: MutableSequence[str], 
     suffix: str, 
@@ -889,7 +889,7 @@ def drop_suffix_from_list(
         vessel = item.__class__
         return vessel(contents)
 
-@drop_suffix.register
+@drop_suffix.register(Set)
 def drop_suffix_from_set(
     item: Set[str], 
     suffix: str, 
@@ -912,7 +912,7 @@ def drop_suffix_from_set(
         vessel = item.__class__
         return vessel(contents)  
 
-@drop_suffix.register
+@drop_suffix.register(tuple)
 def drop_suffix_from_tuple(
     item: tuple[str, ...], 
     suffix: str, 
