@@ -32,14 +32,14 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7
 
 [[package]]
 name = "miller"
-version = "0.1.6"
+version = "0.1.7"
 description = "introspection tools using consistent, accessible syntax"
 category = "main"
 optional = false
 python-versions = ">=3.9,<4.0"
 
 [package.dependencies]
-camina = ">=0.1.10,<0.2.0"
+camina = ">=0.1.11,<0.2.0"
 nagata = ">=0.1.3,<0.2.0"
 
 [[package]]
@@ -64,7 +64,7 @@ miller = ">=0.1.4,<0.2.0"
 
 [[package]]
 name = "packaging"
-version = "22.0"
+version = "23.0"
 description = "Core utilities for Python packages"
 category = "dev"
 optional = false
@@ -113,7 +113,7 @@ testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xm
 
 [[package]]
 name = "wcwidth"
-version = "0.2.5"
+version = "0.2.6"
 description = "Measures the displayed width of unicode strings in a terminal"
 category = "dev"
 optional = false
@@ -122,7 +122,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "de805c0c439c18b39618d41983e7975055acc7b56a8e555b65f6e69ed693f0df"
+content-hash = "1025d442b1297de6c7078369f666df411d253ac8bfdb28defc44d75a8f35213f"
 
 [metadata.files]
 atomicwrites = [
@@ -137,8 +137,8 @@ colorama = [
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
 miller = [
-    {file = "miller-0.1.6-py3-none-any.whl", hash = "sha256:8983a0fc27e1ebd9d7be15e1261e4ff9c2d5814e07f337c485d25cd9d2ac2deb"},
-    {file = "miller-0.1.6.tar.gz", hash = "sha256:f0c61ed4f8323f8fe2611f0b0f5b14c3381e973513b84c32d5f6e1053ea8e509"},
+    {file = "miller-0.1.7-py3-none-any.whl", hash = "sha256:2c0d388a3c5d0306df1746e3c872c7f07686ca0ac91be17c1f37f7fb079a5e67"},
+    {file = "miller-0.1.7.tar.gz", hash = "sha256:2227662e1a33691bf4957a9f54e6cd23acb6b6f3e772a5bbaca4ce7bf6b1e6b5"},
 ]
 more-itertools = [
     {file = "more-itertools-9.0.0.tar.gz", hash = "sha256:5a6257e40878ef0520b1803990e3e22303a41b5714006c32a3fd8304b26ea1ab"},
@@ -149,8 +149,8 @@ nagata = [
     {file = "nagata-0.1.4.tar.gz", hash = "sha256:3c8303a5406b6177c81ddac4545cc0fc112095826509462f2b1a49f4ff137101"},
 ]
 packaging = [
-    {file = "packaging-22.0-py3-none-any.whl", hash = "sha256:957e2148ba0e1a3b282772e791ef1d8083648bc131c8ab0c1feba110ce1146c3"},
-    {file = "packaging-22.0.tar.gz", hash = "sha256:2198ec20bd4c017b8f9717e00f0c8714076fc2fd93816750ab48e2c41de2cfd3"},
+    {file = "packaging-23.0-py3-none-any.whl", hash = "sha256:714ac14496c3e68c99c29b00845f7a2b85f3bb6f1078fd9f72fd20f0570002b2"},
+    {file = "packaging-23.0.tar.gz", hash = "sha256:b6ad297f8907de0fa2fe1ccbd26fdaf387f5f47c7275fedf8cce89f99446cf97"},
 ]
 pluggy = [
     {file = "pluggy-0.13.1-py2.py3-none-any.whl", hash = "sha256:966c145cd83c96502c3c3868f50408687b38434af77734af1e9ca461a4081d2d"},
@@ -165,6 +165,6 @@ pytest = [
     {file = "pytest-5.4.3.tar.gz", hash = "sha256:7979331bfcba207414f5e1263b5a0f8f521d0f457318836a7355531ed1a4c7d8"},
 ]
 wcwidth = [
-    {file = "wcwidth-0.2.5-py2.py3-none-any.whl", hash = "sha256:beb4802a9cebb9144e99086eff703a642a13d6a0052920003a230f3294bbe784"},
-    {file = "wcwidth-0.2.5.tar.gz", hash = "sha256:c4d647b99872929fdb7bdcaa4fbe7f01413ed3d98077df798530e5b04f116c83"},
+    {file = "wcwidth-0.2.6-py2.py3-none-any.whl", hash = "sha256:795b138f6875577cd91bba52baf9e445cd5118fd32723b460e30a0af30ea230e"},
+    {file = "wcwidth-0.2.6.tar.gz", hash = "sha256:a5220780a404dbe3353789870978e472cfe477761f06ee55077256e509b156d0"},
 ]

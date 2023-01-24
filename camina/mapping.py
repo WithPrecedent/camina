@@ -1,7 +1,7 @@
 """
-mappings: extensible, flexible, lightweight dict-like classes
+mapping: extensible, flexible, lightweight dict-like classes
 Corey Rayburn Yung <coreyrayburnyung@gmail.com>
-Copyright 2020-2022, Corey Rayburn Yung
+Copyright 2020-2023, Corey Rayburn Yung
 License: Apache-2.0
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,8 @@ Contents:
     Catalog (Dictionary): wildcard-accepting dict which is primarily intended 
         for storing different options and strategies. It also returns lists of 
         matches if a list of keys is provided.
-    Library (Dictionary): automatically stores items using inferred keys.
+    Repository (Dictionary): stores items using inferred keys when the 'add'
+        method is called.
         
 ToDo:
 
@@ -36,15 +37,9 @@ from typing import Any, Optional
 
 from . import base
 from . import convert
+from . import rules
 from . import modify
                   
-
-_ALL_KEYS: list[Any] = ['all', 'All', ['all'], ['All']]
-_DEFAULT_KEYS: list[Any] = [
-    'default', 'defaults', 'Default', 'Defaults', ['default'], ['defaults'], 
-    ['Default'], ['Defaults']]
-_NONE_KEYS: list[Any] = ['none', 'None', ['none'], ['None']]
-
 
 @dataclasses.dataclass 
 class Dictionary(base.Bunch, MutableMapping): 
@@ -55,9 +50,11 @@ class Dictionary(base.Bunch, MutableMapping):
     and allowing the '+' operator to join Dictionary instances with other 
     mappings, including Dictionary instances. 
     
-    In addition, it differs in 1 other significant way:
+    In addition, it differs in 2 other significant ways:
         1) When returning 'keys', 'values' and 'items', this class returns them
             as tuples instead of KeysView, ValuesView, and ItemsView.
+        2) It includes the same functionality as 'defaultdict' in the python 
+            standard library, including a 'setdefault' method.
     
     Args:
         contents (MutableMapping[Hashable, Any]): stored dictionary. Defaults 
@@ -70,7 +67,27 @@ class Dictionary(base.Bunch, MutableMapping):
         default_factory = dict)
     default_factory: Optional[Any] = None
 
-    """ Public Methods """
+    """ Class Methods """
+    
+    @classmethod
+    def fromkeys(
+        cls, 
+        keys: Sequence[Hashable], 
+        value: Any, 
+        **kwargs: Any) -> Dictionary:
+        """Emulates the 'fromkeys' class method from a python dict.
+
+        Args:
+            keys (Sequence[Hashable]): items to be keys in a new Dictionary.
+            value (Any): the value to use for all values in a new Dictionary.
+
+        Returns:
+            Dictionary: formed from 'keys' and 'value'.
+            
+        """
+        return cls(contents = dict.fromkeys(keys, value), **kwargs)     
+     
+    """ Instance Methods """
      
     def add(self, item: Mapping[Hashable, Any], **kwargs: Any) -> None:
         """Adds 'item' to the 'contents' attribute.
@@ -93,25 +110,7 @@ class Dictionary(base.Bunch, MutableMapping):
         """
         del self.contents[item]
         return
-    
-    @classmethod
-    def fromkeys(
-        cls, 
-        keys: Sequence[Hashable], 
-        value: Any, 
-        **kwargs: Any) -> Dictionary:
-        """Emulates the 'fromkeys' class method from a python dict.
 
-        Args:
-            keys (Sequence[Hashable]): items to be keys in a new Dictionary.
-            value (Any): the value to use for all values in a new Dictionary.
-
-        Returns:
-            Dictionary: formed from 'keys' and 'value'.
-            
-        """
-        return cls(contents = dict.fromkeys(keys, value), **kwargs)
-    
     def get(self, key: Hashable, default: Optional[Any] = None) -> Any:
         """Returns value in 'contents' or default options.
         
@@ -291,7 +290,7 @@ class Catalog(Dictionary):
     default: Optional[Any] = 'all'
     always_return_list: bool = False
 
-    """ Public Methods """
+    """ Instance Methods """
     
     def delete(self, item: Hashable | Sequence[Hashable]) -> None:
         """Deletes 'item' in 'contents'.
@@ -327,13 +326,13 @@ class Catalog(Dictionary):
 
         """
         # Returns a list of all values if the 'all' key is sought.
-        if key in _ALL_KEYS:
+        if key in rules.ALL_KEYS:
             return list(self.contents.values())
         # Returns a list of values for keys listed in 'default' attribute.
-        elif key in _DEFAULT_KEYS:
+        elif key in rules.DEFAULT_KEYS:
             return self[self.default]
         # Returns an empty list if a null value is sought.
-        elif key in _NONE_KEYS:
+        elif key in rules.NONE_KEYS:
             if self.default_factory is None:
                 if self.always_return_list:
                     return []
@@ -377,13 +376,17 @@ class Catalog(Dictionary):
 
 
 @dataclasses.dataclass 
-class Library(Dictionary):
+class Repository(Dictionary):
     """Dictionary with inferred keys based on items added.
     
-    A Library differs from an ordinary python dict in ways inherited from 
-    Dictionary. In addition, it differs in 1 other significant way:
-        1) The 'add' method relies on the internal '_get_name' method to assign 
-            a str key for the passed item.
+    A Repository differs from an ordinary python dict in ways inherited from 
+    Dictionary. In addition, it differs in 2 other significant ways:
+        1) The 'add' method relies on the internal '_get_name__' method to 
+            assign a str key for the passed item.
+        2) It includes an 'overwrite' parameter which allows users to determine
+            whether existing items will be overwritten when the inferred key
+            matches an existing one or whether a new key will be inferred by
+            adding an integer counter as a suffix to the key.
     
     Args:
         contents (MutableMapping[Hashable, Any]): stored dictionary. Defaults 
@@ -436,3 +439,4 @@ class Library(Dictionary):
             
         """
         return convert.namify(item)
+    

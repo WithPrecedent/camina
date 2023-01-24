@@ -1,7 +1,7 @@
 """
-sequences: extensible, flexible, lightweight list-like classes
+sequence: extensible, flexible, lightweight list-like classes
 Corey Rayburn Yung <coreyrayburnyung@gmail.com>
-Copyright 2020-2022, Corey Rayburn Yung
+Copyright 2020-2023, Corey Rayburn Yung
 License: Apache-2.0
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +59,7 @@ class Listing(base.Bunch, MutableSequence):
     """
     contents: MutableSequence[Any] = dataclasses.field(default_factory = list)
 
-    """ Public Methods """
+    """ Instance Methods """
 
     def add(self, item: Any | Sequence[Any]) -> None:
         """Tries to extend 'contents' with 'item'. Otherwise, it appends.
@@ -225,7 +225,7 @@ class Hybrid(Listing):
         default_factory = list)
     default_factory: Optional[Any] = None
         
-    """ Public Methods """
+    """ Instance Methods """
 
     def delete(self, item: Any | int) -> None:
         """Deletes item in 'contents'.

@@ -1,7 +1,7 @@
 """
 test_camina: tests classes in camina
 Corey Rayburn Yung <coreyrayburnyung@gmail.com>
-Copyright 2020-2022, Corey Rayburn Yung
+Copyright 2020-2023, Corey Rayburn Yung
 License: Apache-2.0
 
     Licensed under the Apache License, Version 2.0 (the "License");

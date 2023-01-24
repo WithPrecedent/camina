@@ -1,7 +1,7 @@
 """
 camina: your python project companion
 Corey Rayburn Yung <coreyrayburnyung@gmail.com>
-Copyright 2020-2022, Corey Rayburn Yung
+Copyright 2020-2023, Corey Rayburn Yung
 License: Apache-2.0
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@ ToDo:
         of a Proxy class. 
     Add mechanisms for 'timer' to record results in logger and/or the python
         terminal.
+
         
 For Developers:
 
@@ -51,7 +52,7 @@ any other package maintainer - I want to ensure the package is as accessible and
 useful as possible.
      
 """
-__version__ = '0.1.11'
+__version__ = '0.1.12'
 
 __package__ = 'camina'
 
@@ -61,7 +62,8 @@ __author__ = 'Corey Rayburn Yung'
 from .base import *
 from .clock import *
 from .convert import *
+from .label import *
 from .mapping import *
 from .modify import *
-from .represent import *
+from .rules import *
 from .sequence import *

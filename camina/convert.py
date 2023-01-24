@@ -1,7 +1,7 @@
 """
 convert: functions that convert types
 Corey Rayburn Yung <coreyrayburnyung@gmail.com>
-Copyright 2020-2022, Corey Rayburn Yung
+Copyright 2020-2023, Corey Rayburn Yung
 License: Apache-2.0
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,7 +83,7 @@ from . import modify
 """ General Converters """
 
 @functools.singledispatch  
-def dictify(item: Any) -> MutableMapping[Hashable, Any]:
+def dictify(item: Any, /) -> MutableMapping[Hashable, Any]:
     """Converts 'item' to a MutableMapping.
     
     Args:
@@ -104,7 +104,7 @@ def dictify(item: Any) -> MutableMapping[Hashable, Any]:
         f'{type(item).__name__}')
  
 @functools.singledispatch   
-def hashify(item: Any) -> Hashable:
+def hashify(item: Any, /) -> Hashable:
     """Converts 'item' to a Hashable.
     
     Args:
@@ -164,7 +164,7 @@ def instancify(item: Type[Any] | object, **kwargs: Any) -> Any:
         raise TypeError('item must be a class or class instance')
 
 @functools.singledispatch  
-def integerify(item: Any) -> int:
+def integerify(item: Any, /) -> int:
     """Converts 'item' to an int.
     
     Args:
@@ -185,7 +185,7 @@ def integerify(item: Any) -> int:
             f'unsupported type: {type(item).__name__}')
 
 @functools.singledispatch                  
-def iterify(item: Any) -> Iterable:
+def iterify(item: Any, /) -> Iterable:
     """Returns 'item' as an iterable, but does not iterate str types.
     
     Args:
@@ -206,7 +206,7 @@ def iterify(item: Any) -> Iterable:
         except TypeError:
             return iter((item,))
         
-def kwargify(item: Type[Any], args: tuple[Any]) -> dict[Hashable, Any]:
+def kwargify(item: Type[Any], /, args: tuple[Any]) -> dict[Hashable, Any]:
     """Converts args to kwargs.
     
     Args:
@@ -227,7 +227,7 @@ def kwargify(item: Type[Any], args: tuple[Any]) -> dict[Hashable, Any]:
         return dict(zip(annotations, args))
 
 @functools.singledispatch   
-def listify(item: Any, default: Optional[Any] = None) -> Any:
+def listify(item: Any, /, default: Optional[Any] = None) -> Any:
     """Returns passed item as a list (if not already a list).
 
     Args:
@@ -254,34 +254,6 @@ def listify(item: Any, default: Optional[Any] = None) -> Any:
         return item
     else:
         return [item]
-
-def namify(item: Any, default: Optional[str] = None) -> Optional[str]:
-    """Returns str name representation of 'item'.
-    
-    Args:
-        item (Any): item to determine a str name.
-        default(Optional[str]): default name to return if other methods at name
-            creation fail.
-
-    Returns:
-        str: a name representation of 'item.'
-        
-    """        
-    if isinstance(item, str):
-        return item
-    elif (
-        hasattr(item, 'name') 
-        and not inspect.isclass(item)
-        and isinstance(item.name, str)):
-        return item.name
-    else:
-        try:
-            return modify.snakify(item.__name__)
-        except AttributeError:
-            if item.__class__.__name__ is not None:
-                return modify.snakify(item.__class__.__name__) 
-            else:
-                return default
 
 @functools.singledispatch                            
 def numify(item: Any, raise_error: bool = False) -> int | float | Any:
@@ -317,7 +289,7 @@ def numify(item: Any, raise_error: bool = False) -> int | float | Any:
                 return item
             
 @functools.singledispatch
-def pathlibify(item: str | pathlib.Path) -> pathlib.Path:
+def pathlibify(item: str | pathlib.Path, /) -> pathlib.Path:
     """Converts string 'path' to pathlib.Path object.
 
     Args:
@@ -339,7 +311,7 @@ def pathlibify(item: str | pathlib.Path) -> pathlib.Path:
         raise TypeError('item must be str or pathlib.Path type')
     
 @functools.singledispatch           
-def stringify(item: Any, default: Optional[Any] = None) -> Any:
+def stringify(item: Any, /, default: Optional[Any] = None) -> Any:
     """Converts 'item' to a str from a Sequence.
     
     Args:
@@ -371,7 +343,7 @@ def stringify(item: Any, default: Optional[Any] = None) -> Any:
         raise TypeError('item must be str or a sequence')
 
 @functools.singledispatch    
-def tuplify(item: Any, default: Optional[Any] = None) -> Any:
+def tuplify(item: Any, /, default: Optional[Any] = None) -> Any:
     """Returns passed item as a tuple (if not already a tuple).
 
     Args:
@@ -483,7 +455,7 @@ def windowify(
 """ Specific Converters """
 
 @integerify.register
-def float_to_int(item: float) -> int:
+def float_to_int(item: float, /) -> int:
     """Converts 'item' to an int.
     
     Args:
@@ -496,7 +468,7 @@ def float_to_int(item: float) -> int:
     return int(item)
 
 @integerify.register
-def str_to_int(item: str) -> int:
+def str_to_int(item: str, /) -> int:
     """Converts 'item' to an int.
     
     Args:
@@ -509,7 +481,7 @@ def str_to_int(item: str) -> int:
     return int(item)
 
 # @camina.dynamic.dispatcher   
-def to_list(item: Any) -> list[Any]:
+def to_list(item: Any, /) -> list[Any]:
     """Converts 'item' to a list.
     
     Args:
@@ -530,7 +502,7 @@ def to_list(item: Any) -> list[Any]:
             f'{type(item).__name__}')
 
 # @to_list.register
-def str_to_list(item: str) -> list[Any]:
+def str_to_list(item: str, /) -> list[Any]:
     """[summary]
 
     Args:
@@ -543,7 +515,7 @@ def str_to_list(item: str) -> list[Any]:
     return ast.literal_eval(item)
 
 # @camina.dynamic.dispatcher   
-def to_float(item: Any) -> float:
+def to_float(item: Any, /) -> float:
     """Converts 'item' to a float.
     
     Args:
@@ -564,7 +536,7 @@ def to_float(item: Any) -> float:
             f'{type(item).__name__}')
 
 # @to_float.register
-def int_to_float(item: int) -> float:
+def int_to_float(item: int, /) -> float:
     """[summary]
 
     Args:
@@ -577,7 +549,7 @@ def int_to_float(item: int) -> float:
     return float(item)
 
 # @to_float.register
-def str_to_float(item: str) -> float:
+def str_to_float(item: str, /) -> float:
     """[summary]
 
     Args:
@@ -590,7 +562,7 @@ def str_to_float(item: str) -> float:
     return float(item)
 
 # @camina.dynamic.dispatcher   
-def to_path(item: Any) -> pathlib.Path:
+def to_path(item: Any, /) -> pathlib.Path:
     """Converts 'item' to a pathlib.Path.
     
     Args:
@@ -611,7 +583,7 @@ def to_path(item: Any) -> pathlib.Path:
             f'{type(item).__name__}')
 
 @pathlibify.register  
-def str_to_path(item: str) -> pathlib.Path:
+def str_to_path(item: str, /) -> pathlib.Path:
     """[summary]
 
     Args:
@@ -624,7 +596,7 @@ def str_to_path(item: str) -> pathlib.Path:
     return pathlib.pathlib.Path(item)
 
 # @camina.dynamic.dispatcher   
-def to_str(item: Any) -> str:
+def to_str(item: Any, /) -> str:
     """Converts 'item' to a str.
     
     Args:
@@ -645,7 +617,7 @@ def to_str(item: Any) -> str:
             f'{type(item).__name__}')
 
 # @to_str.register
-def int_to_str(item: int) -> str:
+def int_to_str(item: int, /) -> str:
     """[summary]
 
     Args:
@@ -658,7 +630,7 @@ def int_to_str(item: int) -> str:
     return str(item)
 
 # @to_str.register
-def float_to_str(item: float) -> str:
+def float_to_str(item: float, /) -> str:
     """[summary]
 
     Args:
@@ -671,7 +643,7 @@ def float_to_str(item: float) -> str:
     return str(item)
 
 # @to_str.register
-def list_to_str(item: list[Any]) -> str:
+def list_to_str(item: list[Any], /) -> str:
     """[summary]
 
     Args:
@@ -684,7 +656,7 @@ def list_to_str(item: list[Any]) -> str:
     return ', '.join(item)
    
 # @to_str.register 
-def none_to_str(item: None) -> str:
+def none_to_str(item: None, /) -> str:
     """[summary]
 
     Args:
@@ -697,7 +669,7 @@ def none_to_str(item: None) -> str:
     return 'None'
 
 # @to_str.register
-def path_to_str(item: pathlib.Path) -> str:
+def path_to_str(item: pathlib.Path, /) -> str:
     """Converts a pathlib.Path to a str.
 
     Args:
@@ -711,7 +683,7 @@ def path_to_str(item: pathlib.Path) -> str:
 
 # @to_str.register
 def datetime_to_string(
-    item: datetime.datetime,
+    item: datetime.datetime, /,
     time_format: Optional[str] = '%Y-%m-%d_%H-%M') -> str:
     """ Return datetime 'item' as a str based on 'time_format'.
     
