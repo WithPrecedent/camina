@@ -52,15 +52,15 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "nagata"
-version = "0.1.4"
+version = "0.1.5"
 description = "python file management using a common, intuitive syntax"
 category = "main"
 optional = false
 python-versions = ">=3.9,<4.0"
 
 [package.dependencies]
-camina = ">=0.1.10,<0.2.0"
-miller = ">=0.1.4,<0.2.0"
+camina = ">=0.1.12,<0.2.0"
+miller = ">=0.1.7,<0.2.0"
 
 [[package]]
 name = "packaging"
@@ -145,8 +145,8 @@ more-itertools = [
     {file = "more_itertools-9.0.0-py3-none-any.whl", hash = "sha256:250e83d7e81d0c87ca6bd942e6aeab8cc9daa6096d12c5308f3f92fa5e5c1f41"},
 ]
 nagata = [
-    {file = "nagata-0.1.4-py3-none-any.whl", hash = "sha256:ee9a165ff2b868ea9d934f5750d20f845766d680ea85b00e7b7b0a6c5a6fede9"},
-    {file = "nagata-0.1.4.tar.gz", hash = "sha256:3c8303a5406b6177c81ddac4545cc0fc112095826509462f2b1a49f4ff137101"},
+    {file = "nagata-0.1.5-py3-none-any.whl", hash = "sha256:2acab0910316995e6ac3e027af0505b29f2ce39e206f45859a18cbb5c12b08a5"},
+    {file = "nagata-0.1.5.tar.gz", hash = "sha256:291064744273e82cecbf8165b067f2698a49e57dc85c7dfc35189c9a0a5f7bdd"},
 ]
 packaging = [
     {file = "packaging-23.0-py3-none-any.whl", hash = "sha256:714ac14496c3e68c99c29b00845f7a2b85f3bb6f1078fd9f72fd20f0570002b2"},
