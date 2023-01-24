@@ -138,14 +138,14 @@ def test_catalog():
     assert len(catalog) == 1
     return
     
-def test_library():
-    library = camina.Library()
-    library.add(AnotherClass())
-    library.add(ThirdClass, 'random_name')
-    assert 'another' in library
-    assert 'random_name' in library
-    library.delete('random_name')
-    assert 'random_name' not in library
+def test_repository():
+    repository = camina.Repository()
+    repository.add(AnotherClass())
+    repository.add(ThirdClass, 'random_name')
+    assert 'another' in repository
+    assert 'random_name' in repository
+    repository.delete('random_name')
+    assert 'random_name' not in repository
     return
  
 if __name__ == '__main__':
@@ -154,5 +154,5 @@ if __name__ == '__main__':
     test_hybrid()
     test_dictionary()
     test_catalog()
-    test_library()
+    test_repository()
    

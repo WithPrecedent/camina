@@ -36,8 +36,9 @@ import miller
 
 from . import base
 from . import convert
+from . import label
 
-                          
+       
 @dataclasses.dataclass
 class Listing(base.Bunch, MutableSequence):
     """Basic camina list replacement.
@@ -242,7 +243,7 @@ class Hybrid(Listing):
             del self.contents[item]
         else:
             self.contents = [
-                c for c in self.contents if convert.namify(c) != item]
+                c for c in self.contents if label.namify(c) != item]
         return
     
     def get(self, key: Hashable, default: Optional[Any] = None) -> Any:
@@ -296,7 +297,7 @@ class Hybrid(Listing):
                 any duplicate keys, which are permitted by Hybrid.
             
         """
-        return tuple([convert.namify(c) for c in self.contents])
+        return tuple([label.namify(c) for c in self.contents])
 
     def setdefault(self, value: Any) -> None:
         """sets default value to return when 'get' method is used.
@@ -363,7 +364,7 @@ class Hybrid(Listing):
             return self.contents[key]
         else:
             matches = [
-                c for c in self.contents if convert.namify(c) == key]
+                c for c in self.contents if label.namify(c) == key]
             if len(matches) == 0:
                 raise KeyError(f'{key} is not in {self.__class__.__name__}')
             elif len(matches) == 1:

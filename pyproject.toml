@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "camina"
-version = "0.1.13"
+version = "0.1.14"
 description = "Your Python project companion"
 authors = ["corey rayburn yung <coreyrayburnyung@gmail.com>"]
 license = "Apache-2.0"

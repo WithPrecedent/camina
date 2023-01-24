@@ -37,6 +37,7 @@ from typing import Any, Optional
 
 from . import base
 from . import convert
+from . import label
 from . import rules
 from . import modify
                   
@@ -438,5 +439,5 @@ class Repository(Dictionary):
             str: inferred name.
             
         """
-        return convert.namify(item)
+        return label.namify(item)
     
