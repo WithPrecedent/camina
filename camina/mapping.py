@@ -17,22 +17,29 @@ License: Apache-2.0
     limitations under the License.
 
 Contents:
-    Dictionary (bunches.Bunch, MutableMapping): drop-in replacement 
-        for a python dict with some added functionality.
+    Dictionary (base.Bunch, MutableMapping): drop-in replacement for a python 
+        dict with some added functionality.
     Catalog (Dictionary): wildcard-accepting dict which is primarily intended 
         for storing different options and strategies. It also returns lists of 
         matches if a list of keys is provided.
+    ChainDictionary (Dictionary): combines the additional functionality of 
+        Dictionary with collections.ChainMap from the Python builtin library.
     Repository (Dictionary): stores items using inferred keys when the 'add'
-        method is called.
+        method is called. This is useful for mappings where the key naming is
+        controlled by the mapping instead of based on the passed arguments. 
+        Support for guaranteed unique key creation (using an integer counter) is
+        provided out of the box based on the 'overwrite' argument.
         
 ToDo:
 
        
 """
 from __future__ import annotations
-from collections.abc import Hashable, Mapping, MutableMapping, Sequence
+from collections.abc import (
+    Hashable, Mapping, MutableMapping, MutableSequence, Sequence)
 import copy
 import dataclasses
+import itertools
 from typing import Any, Optional
 
 from . import base
@@ -375,6 +382,257 @@ class Catalog(Dictionary):
             self.contents.update(dict(zip(key, value)))
         return
 
+    
+@dataclasses.dataclass
+class ChainDictionary(Dictionary):
+    """Combines functionality of collections.ChainMap with Dictionary.
+    
+    Args:
+        contents (MutableSequence[Dictionary[Hashable, Any]]): list of stored 
+            Dictionary instances. This is equivalent to the 'maps' attribute of
+            a collections.ChainMap instance but uses a different name for 
+            compatibility with base.Bunch. A separate 'maps' property is
+            included which points to 'contents' to ensure compatibility in the
+            opposite direction.
+        default_factory (Optional[Any]): default value to return or default 
+            callable to use to create the default value.
+        return_first (Optional[bool]): whether to only return the first match
+            found (True) or to search all of the stored Dictionary instances
+            (False). Defaults to True.
+                    
+    """
+    contents: MutableSequence[Dictionary[Hashable, Any]] = dataclasses.field(
+        default_factory = list)
+    default_factory: Optional[Any] = None
+    return_first: Optional[bool] = True
+    
+    """ Properties """
+    
+    @property
+    def maps(self) -> MutableSequence[Dictionary[Hashable, Any]]:
+        """Returns 'contents' attribute.
+
+        Returns:
+            MutableSequence[Dictionary[Hashable, Any]]: stored Dictionary 
+                instances.
+            
+        """        
+        return self.contents
+    
+    @maps.setter
+    def maps(self, value: MutableSequence[Dictionary[Hashable, Any]]) -> None:
+        """Sets 'contents' to 'value'.
+
+        Args:
+            value (MutableSequence[Dictionary[Hashable, Any]]): new list-like
+                instance to assign 'contents' to.
+        """        
+        self.contents = value
+        return 
+
+    @maps.deleter
+    def maps(self) -> None:
+        """Sets 'contents' to an empty list."""        
+        self.contents = []
+        return     
+                 
+    """ Class Methods """
+    
+    @classmethod
+    def fromkeys(
+        cls, 
+        keys: Sequence[Hashable], 
+        value: Any, 
+        **kwargs: Any) -> Dictionary:
+        """Emulates the 'fromkeys' class method from a python dict.
+        
+        Since this method is an awkward fit with a chained map, it just assigns 
+        the 'keys' and 'value' to a single Dictionary stored in the 'contents' 
+        list.
+
+        Args:
+            keys (Sequence[Hashable]): items to be keys in a new Dictionary.
+            value (Any): the value to use for all values in a new Dictionary.
+
+        Returns:
+            Dictionary: formed from 'keys' and 'value'.
+            
+        """
+        return cls(contents = [Dictionary.fromkeys(keys, value, **kwargs)])     
+     
+    """ Instance Methods """
+     
+    def add(self, item: Mapping[Hashable, Any], **kwargs: Any) -> None:
+        """Adds 'item' to the 'contents' attribute.
+        
+        Args:
+            item (Mapping[Hashable, Any]): items to add to 'contents' attribute.
+            kwargs: creates a consistent interface even when subclasses have
+                additional parameters.
+                
+        """
+        self.contents.append(item, **kwargs)
+        return
+
+    def delete(self, item: Hashable) -> None:
+        """Deletes 'item' in 'contents'.
+
+        Because a chained mapping can have identical keys in different stored 
+        mappings, this method searches through all of the stored Dictionary
+        instances and removes the key wherever it appears.
+
+        Args:
+            item (Hashable): key in 'contents' to delete the key/value pair.
+
+        """
+        for dictionary in self.contents:
+            try:
+                del dictionary[item]
+            except KeyError:
+                pass
+        return
+                
+    def items(self) -> tuple[tuple[Hashable, Any], ...]:
+        """Emulates python dict 'items' method.
+        
+        Returns:
+            tuple[tuple[Hashable], Any]: a tuple equivalent to dict.items(). 
+            
+        """
+        return tuple(zip(self.keys(), self.values()))
+
+    def keys(self) -> tuple[Hashable, ...]:
+        """Returns 'contents' keys as a tuple.
+        
+        Returns:
+            tuple[Hashable, ...]: a tuple equivalent to dict.keys().
+            
+        """
+        return tuple(
+            itertools.chain.from_iterable([d.keys() for d in self.contents]))
+    
+    def new_child(self, m: Dictionary, **kwargs) -> None:
+        """Inserts 'm' as the first Dictionary in 'contents'.
+        
+        This method mirrors the functionality and parameters of 
+        collections.Chainmap.new_child.
+        
+        Args:
+            m (Dictionary): new Dictionary to add to 'contents' at index 0.
+            
+        """
+        self.contents.insert(0, m)
+        return
+
+    def parents(self) -> ChainDictionary:
+        """Returns an instance with 'contents' after the first.
+        
+        This method mirrors the functionality of collections.Chainmap.parents.
+        
+        Returns:
+            ChainDictionary: an isntance with all stored Dictionary instances 
+                after the first.
+            
+        """
+        return self.__class__(
+            self.contents[1:], 
+            default_factory = self.default_factory)
+               
+    def subset(
+        self, 
+        include: Optional[Hashable | Sequence[Hashable]] = None, 
+        exclude: Optional[Hashable | Sequence[Hashable]] = None) -> (
+            ChainDictionary):
+        """Returns a new instance with a subset of 'contents'.
+
+        This method applies 'include' before 'exclude' if both are passed. If
+        'include' is None, all existing items will be added to the new subset
+        class instance before 'exclude' is applied.
+        
+        This method relies on all stored mappings being compatible with the
+        Dictionary class because it uses the 'subset' method of those stored
+        mappings.
+        
+        Args:
+            include (Optional[Hashable | Sequence[Hashable]]): key(s) to 
+                include in the new Dictionary instance.
+            exclude (Optional[Hashable | Sequence[Hashable]]): key(s) to 
+                exclude from the new Dictionary instance.                
+        
+        Raises:
+            ValueError: if 'include' and 'exclude' are both None.
+                  
+        Returns:
+            ChainDictionary: with only keys from 'include' and no keys in 
+                'exclude'.
+
+        """
+        new_contents = []
+        for dictionary in self.contents:
+            new_contents.append(
+                dictionary.subset(include = include, exclude = exclude))
+        new_dictionary = copy.deepcopy(self)
+        new_dictionary.contents = new_contents
+        return new_dictionary
+      
+    def values(self) -> tuple[Any, ...]:
+        """Returns 'contents' values as a tuple.
+        
+        Returns:
+            tuple[Any, ...]: a tuple equivalent to dict.values().
+            
+        """
+        return tuple(
+            itertools.chain.from_iterable([d.values() for d in self.contents]))
+
+    """ Dunder Methods """
+
+    def __getitem__(self, key: Hashable) -> Any:
+        """Returns value(s) for 'key' in 'contents'.
+        
+        If there are multiple matches for 'key' and the 'return_first' attribute
+        is False, this method returns all matches in a list. Otherwise, only the
+        first match is returned
+
+        Args:
+            key (Hashable): key in 'contents' for which a value is sought.
+
+        Returns:
+            Any: value(s) stored in 'contents'.
+
+        """
+        matches = []
+        for dictionary in self.contents:
+            try:
+                matches.append(dictionary[key])
+                if self.return_first:
+                    return matches[0]
+            except KeyError:
+                pass
+        if len(matches) == 0:
+            raise KeyError(f'{key} is not found in the ChainDictionary')
+        if len(matches) > 1:
+            return matches[0]
+        else:
+            return matches
+
+    def __setitem__(self, key: Hashable, value: Any) -> None:
+        """Sets 'key' in 'contents' to 'value'.
+        
+        This method stores the passed 'key' and 'value' in the first stored
+        Dictionary. If none exists, one is created to stored 'key' and 'value'.
+
+        Args:
+            key (Hashable): key to set in 'contents'.
+            value (Any): value to be paired with 'key' in 'contents'.
+
+        """
+        if len(self) == 0:
+            self.contents = [Dictionary({key: value})]
+        else:
+            self.contents[0].update({key: value})
+        return
+    
 
 @dataclasses.dataclass 
 class Repository(Dictionary):
