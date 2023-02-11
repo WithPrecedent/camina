@@ -26,8 +26,8 @@ ToDo:
 
 """
 from __future__ import annotations
-
-from collections.abc import Hashable, Mapping, MutableSequence, Sequence, Set
+from collections.abc import Callable
+import dataclasses
 import inspect
 from typing import Any, Optional, Type
 
@@ -61,4 +61,66 @@ def namify(item: Any, /, default: Optional[str] = None) -> Optional[str]:
                 return modify.snakify(item.__class__.__name__) 
             else:
                 return default
+
+
+@dataclasses.dataclass
+class Name(object):
+    """Descriptor for a name attribute.
     
+    This class automatically provides a name attribute to an object using the
+    'namer' function. 
+
+    Args:
+        namer (Optional[Callable[[object | Type[Any]], str]]): function that
+            creates a name if one has not been stored. Defaults to namify.
+            
+    Attributes:
+        private_name (str): the name of the attribute in the owner instance 
+            with a leading underscore added.
+            
+    """
+    namer: Optional[Callable[[object | Type[Any]], str]] = namify
+        
+    """ Dunder Methods """
+
+    def __get__(
+        self, 
+        owner: object, 
+        objtype: Optional[Type[Any]] = None) -> Any:
+        """Returns name stored in 'private_name' of 'owner' of calls 'namer'.
+
+        Args:
+            owner (object): object of which this descriptor is an attribute.
+            objtype (Optional[Type[Any]]): class of 'owner'. Defaults to None.
+
+        Returns:
+            Any: stored item.
+            
+        """
+        try:
+            return getattr(owner, self.private_name)
+        except AttributeError:
+            return self.namer(owner)            
+
+    def __set__(self, owner: object, value: Any) -> None:
+        """Stores 'value' in 'private_name' of 'owner'.
+
+        Args:
+            owner (object): object of which this descriptor is an attribute.
+            value (Any): name to store.
+            
+        """
+        setattr(owner, self.private_name, value)
+        return    
+    
+    def __set_name__(self, owner: object, name: str) -> None:
+        """Stores 'private_name' based on the attribute name in 'owner'.
+
+        Args:
+            owner (object): object of which this descriptor is an attribute.
+            name (str): name of this attribute in 'owner'. 
+            
+        """
+        self.private_name = f'_{name}'
+        return
+   

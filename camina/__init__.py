@@ -52,7 +52,7 @@ any other package maintainer - I want to ensure the package is as accessible and
 useful as possible.
      
 """
-__version__ = '0.1.15'
+__version__ = '0.1.16'
 
 __package__ = 'camina'
 
