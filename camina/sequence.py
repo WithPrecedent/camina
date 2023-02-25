@@ -1,5 +1,5 @@
 """
-sequence: extensible, flexible, lightweight list-like classes
+sequence: list-like classes
 Corey Rayburn Yung <coreyrayburnyung@gmail.com>
 Copyright 2020-2023, Corey Rayburn Yung
 License: Apache-2.0
@@ -17,7 +17,7 @@ License: Apache-2.0
     limitations under the License.
 
 Contents:
-    Listing (bunches.Bunch, MutableSequence): drop-in replacement for a python 
+    Listing (base.Bunch, MutableSequence): drop-in replacement for a python 
         list with additional functionality.
     Hybrid (Listing): iterable with both dict and list interfaces. Stored items
         must be hashable or have a 'name' attribute.
@@ -297,7 +297,7 @@ class Hybrid(Listing):
                 any duplicate keys, which are permitted by Hybrid.
             
         """
-        return tuple([label.namify(c) for c in self.contents])
+        return tuple(label.namify(c) for c in self.contents)
 
     def setdefault(self, value: Any) -> None:
         """sets default value to return when 'get' method is used.

@@ -1,5 +1,5 @@
 """
-rules: settings for camina
+configuration: settings for camina
 Corey Rayburn Yung <coreyrayburnyung@gmail.com>
 Copyright 2020-2023, Corey Rayburn Yung
 License: Apache-2.0
@@ -25,32 +25,38 @@ ToDo:
 """
 from __future__ import annotations
 from collections.abc import Callable
+import dataclasses
 from typing import Any, Type
 
-import camina
-
+from . import convert
+ 
 
 ALL_KEYS: list[Any] = ['all', 'All', ['all'], ['All']]
 DEFAULT_KEYS: list[Any] = [
     'default', 'defaults', 'Default', 'Defaults', ['default'], ['defaults'], 
     ['Default'], ['Defaults']]
+KEY_NAMER: Callable[[object | Type[Any]], str] = convert.namify
+METHOD_NAMER: Callable[[object | Type[Any]], str] = (
+    lambda x: f'from_{convert.namify(x)}')
 NONE_KEYS: list[Any] = ['none', 'None', ['none'], ['None']]
-NAMER: Callable[[object | Type[Any]], str] = camina.namify
 
+
+@dataclasses.dataclass
+class MISSING_VALUE(object):
+    """Sentinel object for a missing data or parameter.
     
-def set_namer(namer: Callable[[object | Type[Any]], str]) -> None:
-    """Sets the global default function used to name items.
-
-    Args:
-        namer (Callable[[object | Type[Any]], str]): function that returns a 
-            str name of any item passed.
-
-    Raises:
-        TypeError: if 'namer' is not callable.
-        
+    This follows the same pattern as the '_MISSING_TYPE' class in the builtin
+    dataclasses library. 
+    https://github.com/python/cpython/blob/3.10/Lib/dataclasses.py#L182-L186
+    
+    Because None is sometimes a valid argument or data option, this class
+    provides an alternative that does not create the confusion that a default of 
+    None can sometimes lead to.
+    
     """
-    if isinstance(namer, Callable):
-        globals()['NAMER'] = namer
-    else:
-        raise TypeError('extensions argument must be a sequence of strings')
-        
+    pass
+
+
+# MISSING, instance of MISSING_VALUE, should be used for missing values as an 
+# alternative to None. This provides a fuller repr and traceback.
+MISSING = MISSING_VALUE()  

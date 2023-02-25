@@ -43,9 +43,9 @@ import itertools
 from typing import Any, Optional
 
 from . import base
+from . import configuration
 from . import convert
 from . import label
-from . import rules
 from . import modify
                   
 
@@ -334,13 +334,13 @@ class Catalog(Dictionary):
 
         """
         # Returns a list of all values if the 'all' key is sought.
-        if key in rules.ALL_KEYS:
+        if key in configuration.ALL_KEYS:
             return list(self.contents.values())
         # Returns a list of values for keys listed in 'default' attribute.
-        elif key in rules.DEFAULT_KEYS:
+        elif key in configuration.DEFAULT_KEYS:
             return self[self.default]
         # Returns an empty list if a null value is sought.
-        elif key in rules.NONE_KEYS:
+        elif key in configuration.NONE_KEYS:
             if self.default_factory is None:
                 if self.always_return_list:
                     return []

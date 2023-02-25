@@ -34,9 +34,11 @@ from __future__ import annotations
 import abc
 from collections.abc import Collection, Container, Hashable, Iterator
 import dataclasses
-from typing import Any, Optional
+from typing import Any, Optional, Type
 
-  
+from . import configuration
+
+ 
 @dataclasses.dataclass
 class Bunch(Collection, abc.ABC):
     """Base class for general camina collections.
@@ -162,6 +164,71 @@ class Bunch(Collection, abc.ABC):
         """
         return len(self.contents)  
 
+       
+@dataclasses.dataclass
+class Descriptor(abc.ABC):
+    """Base class for descriptors.
+    
+    Since Python currently lacks an abstract base class for descriptors, this
+    class sets the basic interface for one and offers a fully-featured 
+    '__set_name__' method. Since '__delete__' isn't a strict requirement for
+    a descriptor (typical use cases simply rely on a call to '__get__'), it is
+    not included as a subclass requirement.
+    
+    Attributes:
+        attribute_name (str): name of the attribute for the Descriptor instance 
+            in 'owner'. 
+        private_name (str): 'attribute_name' with a leading underscore added.
+            This attribute contains the name of an attribute in 'owner' (and not 
+            the descriptor) where the data for a descriptor will be stored.
+        owner (object): object of which the Descriptor instance is an attribute.
+            
+    """
+    
+    """ Required Subclass Methods """
+
+    @abc.abstractmethod
+    def __get__(
+        self, 
+        owner: object, 
+        objtype: Optional[Type[Any]] = None) -> Any:
+        """Returns item stored in 'private_name'.
+        Args:
+            owner (object): object of which this validator is an attribute.
+            objtype (Optional[Type[Any]]): class of 'owner'. Defaults to None.
+
+        Returns:
+            Any: stored item.
+            
+        """
+        pass  
+    
+    @abc.abstractmethod
+    def __set__(self, owner: object, value: Any) -> None:
+        """Stores 'value' in 'private_name' of 'owner'.
+
+        Args:
+            owner (object): object of which this validator is an attribute.
+            value (Any): item to store, after being validated.
+            
+        """
+        pass    
+        
+    """ Dunder Methods """
+    
+    def __set_name__(self, owner: object, name: str) -> None:
+        """Creates attributes based on 'owner' and 'item'
+
+        Args:
+            owner (object): object of which this validator is an attribute.
+            name (str): name of this attribute in 'owner'. 
+            
+        """
+        self.attribute_name = name
+        self.private_name = f'_{name}'
+        self.owner = owner
+        return
+
 
 @dataclasses.dataclass
 class Proxy(Container):
@@ -194,7 +261,7 @@ class Proxy(Container):
     """ Dunder Methods """
        
     def __contains__(self, item: Any) -> bool:
-        """Returns whether 'item' is in or equivalent to 'contents'.
+        """Returns whether 'item' is in or the equivalent to 'contents'.
 
         Args:
             item (Any): item to check versus 'contents'.

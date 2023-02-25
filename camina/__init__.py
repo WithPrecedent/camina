@@ -1,5 +1,5 @@
 """
-camina: your python project companion
+camina: flexible, lightweight, extensible, easy-to-use data structures and types
 Corey Rayburn Yung <coreyrayburnyung@gmail.com>
 Copyright 2020-2023, Corey Rayburn Yung
 License: Apache-2.0
@@ -18,11 +18,11 @@ License: Apache-2.0
     
     
 ToDo:
-    increase test coverage
+    Increase test coverage.
     Fix Proxy setter. Currently, the wrapper and wrapped are not being set at
-        the right time, likely due to the inner workings of 'hasattr'.
-    Add more dunder methods to address less common and fringe cases for use
-        of a Proxy class. 
+        the right time, likely due to the inner workings of 'hasattr'. There
+        likely should be more dunder methods to address less common and fringe 
+        cases. 
     Add mechanisms for 'timer' to record results in logger and/or the python
         terminal.
 
@@ -61,9 +61,9 @@ __author__ = 'Corey Rayburn Yung'
 
 from .base import *
 from .clock import *
+from .configuration import *
 from .convert import *
 from .label import *
 from .mapping import *
 from .modify import *
-from .rules import *
 from .sequence import *

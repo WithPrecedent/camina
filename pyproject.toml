@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "camina"
 version = "0.1.16"
-description = "Your Python project companion"
+description = "flexible, lightweight, extensible, easy-to-use data structures and types"
 authors = ["corey rayburn yung <coreyrayburnyung@gmail.com>"]
 license = "Apache-2.0"
 readme = "README.md"
