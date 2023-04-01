@@ -19,6 +19,10 @@ License: Apache-2.0
 Contents:
     Bunch (Collection, abc.ABC): base class for general containers in camina. 
         It requires subclasses to have 'add', 'delete', and 'subset' methods.
+    Descriptor (abc.ABC): interface for descriptors. '__get__' and '__set__' 
+        methods are required for all subclasses. A fully-featured '__set_name__'
+        method is provided which creates 'attribute_name', 'owner', and 
+        'private_name' attributes.
     Proxy (Container): basic wrapper for a stored python object. Dunder methods 
         attempt to intelligently apply access methods to either the wrapper or 
         the wrapped item.   
@@ -175,6 +179,9 @@ class Descriptor(abc.ABC):
     a descriptor (typical use cases simply rely on a call to '__get__'), it is
     not included as a subclass requirement.
     
+    The code in this class is derived from a HowTo Guide in the official Python
+    docs: https://docs.python.org/3/howto/descriptor.html
+    
     Attributes:
         attribute_name (str): name of the attribute for the Descriptor instance 
             in 'owner'. 
@@ -184,15 +191,15 @@ class Descriptor(abc.ABC):
         owner (object): object of which the Descriptor instance is an attribute.
             
     """
-    
-    """ Required Subclass Methods """
 
-    @abc.abstractmethod
+    """ Dunder Methods """
+
     def __get__(
         self, 
         owner: object, 
         objtype: Optional[Type[Any]] = None) -> Any:
-        """Returns item stored in 'private_name'.
+        """Returns item stored in 'private_name' of 'owner.
+        
         Args:
             owner (object): object of which this validator is an attribute.
             objtype (Optional[Type[Any]]): class of 'owner'. Defaults to None.
@@ -201,9 +208,8 @@ class Descriptor(abc.ABC):
             Any: stored item.
             
         """
-        pass  
-    
-    @abc.abstractmethod
+        return getattr(owner, self.private_name)
+
     def __set__(self, owner: object, value: Any) -> None:
         """Stores 'value' in 'private_name' of 'owner'.
 
@@ -212,12 +218,11 @@ class Descriptor(abc.ABC):
             value (Any): item to store, after being validated.
             
         """
-        pass    
-        
-    """ Dunder Methods """
-    
+        setattr(owner, self.private_name, value)
+        return
+           
     def __set_name__(self, owner: object, name: str) -> None:
-        """Creates attributes based on 'owner' and 'item'
+        """Creates attributes based on 'owner' and 'name'.
 
         Args:
             owner (object): object of which this validator is an attribute.
