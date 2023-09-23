@@ -1,28 +1,5 @@
-"""
-convert: functions that convert types
-Corey Rayburn Yung <coreyrayburnyung@gmail.com>
-Copyright 2020-2023, Corey Rayburn Yung
-License: Apache-2.0
+"""Functions that convert types
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-
-All tools should follow one of two form. For conversion of a known type
-to another type, the function name should be:
-    f'{item type}_to_{output type}'
-For a conversion from an unknown type to another type, the function name should
-be:
-    f'to_{output type}'
-     
 Contents:
     dictify: converts to or validates a dict.
     hashify: converts to or validates a hashable object.
@@ -39,7 +16,7 @@ Contents:
     stringify: converts to or validates a str.
     tuplify: converts to or validates a tuple.
     typify: converts a str type to other common types, if possible.
-    windowify: Returns a sliding window of length 'n' over 'item'.
+    windowify: Returns a sliding window of `length` over `item`.
     to_dict:
     to_index
     str_to_index
@@ -60,40 +37,48 @@ Contents:
     none_to_str
     path_to_str
     datetime_to_str
-    
-ToDo:
+
+To Do:
     Add more flexible tools.
-    
+
 """
 from __future__ import annotations
+
 import ast
 import collections
-from collections.abc import (
-    Hashable, Iterable, MutableMapping, MutableSequence, Sequence)
-import datetime
 import functools
 import inspect
 import itertools
 import pathlib
-from typing import Any, Optional, Type
+from collections.abc import (
+    Hashable,
+    Iterable,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+from typing import TYPE_CHECKING, Any, Optional
 
 from . import modify
+
+if TYPE_CHECKING:
+    import datetime
 
 
 """ General Converters """
 
-@functools.singledispatch  
+@functools.singledispatch
 def dictify(item: Any, /) -> MutableMapping[Hashable, Any]:
-    """Converts 'item' to a MutableMapping.
-    
+    """Converts `item` to a MutableMapping.
+
     Args:
-        item (Any): item to convert to a MutableMapping.
+        item: item to convert to a MutableMapping.
 
     Raises:
-        TypeError: if 'item' is a type that is not registered.
+        TypeError: if `item` is a type that is not registered.
 
     Returns:
-        MutableMapping: derived from 'item'.
+        MutableMapping: derived from `item`.
 
     """
     if isinstance(item, MutableMapping):
@@ -102,16 +87,16 @@ def dictify(item: Any, /) -> MutableMapping[Hashable, Any]:
         raise TypeError(
         f'item cannot be converted because it is an unsupported type: '
         f'{type(item).__name__}')
- 
-@functools.singledispatch   
+
+@functools.singledispatch
 def hashify(item: Any, /) -> Hashable:
-    """Converts 'item' to a Hashable.
-    
+    """Converts `item` to a Hashable.
+
     Args:
         item (Any): item to convert to a Hashable.
 
     Raises:
-        TypeError: if 'item' is a type that is not registered.
+        TypeError: if `item` is a type that is not registered.
 
     Returns:
         Hashable: derived from 'item'.
@@ -130,16 +115,12 @@ def hashify(item: Any, /) -> Hashable:
                     return modify.snakify(item.__name__)
                 except AttributeError:
                     return modify.snakify(item.__class__.__name__)
-                except AttributeError:
-                    raise TypeError(f'item cannot be converted because it is ' 
-                                    f'an unsupported type: '
-                                    f'{type(item).__name__}')
 
-def instancify(item: Type[Any] | object, **kwargs: Any) -> Any:
-    """Returns 'item' as an instance with 'kwargs' as parameters/attributes.
-    
-    If 'item' is already an instance, kwargs are added as attributes to the
-    existing 'item'. This will overwrite any existing attributes of the same
+def instancify(item: type[Any] | object, **kwargs: Any) -> Any:
+    """Returns `item` as an instance with `kwargs` as parameters/attributes.
+
+    If `item` is already an instance, kwargs are added as attributes to the
+    existing `item`. This will overwrite any existing attributes of the same
     name.
 
     Args:
@@ -147,13 +128,13 @@ def instancify(item: Type[Any] | object, **kwargs: Any) -> Any:
             passing kwargs or an instance to add kwargs to as attributes.
 
     Raises:
-        TypeError: if 'item' is neither a class nor instance.
-        
+        TypeError: if `item` is neither a class nor instance.
+
     Returns:
-        object: a class instance with 'kwargs' as attributes or passed as 
-            parameters (if 'item' is a class).
-        
-    """         
+        object: a class instance with `kwargs` as attributes or passed as 
+            parameters (if `item` is a class).
+
+    """
     if inspect.isclass(item):
         return item(**kwargs)
     elif isinstance(item, object):
@@ -165,16 +146,16 @@ def instancify(item: Type[Any] | object, **kwargs: Any) -> Any:
 
 @functools.singledispatch  
 def integerify(item: Any, /) -> int:
-    """Converts 'item' to an int.
+    """Converts `item` to an int.
     
     Args:
         item (Any): item to convert.
 
     Raises:
-        TypeError: if 'item' is a type that cannot be converted.
+        TypeError: if `item` is a type that cannot be converted.
 
     Returns:
-        int: derived from 'item'.
+        int: derived from `item`.
 
     """
     if isinstance(item, int):
@@ -186,13 +167,13 @@ def integerify(item: Any, /) -> int:
 
 @functools.singledispatch                  
 def iterify(item: Any, /) -> Iterable:
-    """Returns 'item' as an iterable, but does not iterate str types.
+    """Returns `item` as an iterable, but does not iterate str types.
     
     Args:
         item (Any): item to turn into an iterable
 
     Returns:
-        Iterable: of 'item'. A str type will be stored as a single item in an
+        Iterable: of `item`. A str type will be stored as a single item in an
             Iterable wrapper.
         
     """     
@@ -206,18 +187,18 @@ def iterify(item: Any, /) -> Iterable:
         except TypeError:
             return iter((item,))
         
-def kwargify(item: Type[Any], /, args: tuple[Any]) -> dict[Hashable, Any]:
+def kwargify(item: type[Any], /, args: tuple[Any]) -> dict[Hashable, Any]:
     """Converts args to kwargs.
     
     Args:
     item (Type): the item with annotations used to construct kwargs.
-        args (tuple): arguments without keywords passed to 'item'.
+        args (tuple): arguments without keywords passed to `item`.
         
     Raises:
-        ValueError: if there are more args than annotations in 'item'.
+        ValueError: if there are more args than annotations in `item`.
         
     Returns
-        dict[Hashable, Any]: kwargs based on 'args' and 'item'.
+        dict[Hashable, Any]: kwargs based on `args` and `item`.
     
     """
     annotations = list(item.__annotations__.keys())
@@ -233,13 +214,13 @@ def listify(item: Any, /, default: Optional[Any] = None) -> Any:
     Args:
         item (Any): item to be transformed into a list to allow proper 
             iteration.
-        default (Optional[Any]): the default value to return if 'item' is None.
+        default (Optional[Any]): the default value to return if `item` is None.
             Unfortunately, to indicate you want None to be the default value,
-            you need to put 'None' in quotes. If not passed, 'default' is set to 
+            you need to put `None` in quotes. If not passed, `default` is set to 
             [].
 
     Returns:
-        Any: a passed list, 'item' converted to a list, or the 'default' 
+        Any: a passed list, `item` converted to a list, or the `default` 
             argument.
 
     """
@@ -257,20 +238,20 @@ def listify(item: Any, /, default: Optional[Any] = None) -> Any:
 
 @functools.singledispatch                            
 def numify(item: Any, raise_error: bool = False) -> int | float | Any:
-    """Converts 'item' to a numeric type.
+    """Converts `item` to a numeric type.
     
-    If 'item' cannot be converted to a numeric type and 'raise_error' is False, 
-        'item' is returned as is.
+    If `item` cannot be converted to a numeric type and `raise_error` is False, 
+        `item` is returned as is.
 
     Args:
         item (str): item to be converted.
         raise_error (bool): whether to raise a TypeError when conversion to a
-            numeric type fails (True) or to simply return 'item' (False). 
+            numeric type fails (True) or to simply return `item` (False). 
             Defaults to False.
 
     Raises:
-        TypeError: if 'item' cannot be converted to a numeric type and 
-            'raise_error' is True.
+        TypeError: if `item` cannot be converted to a numeric type and 
+            `raise_error` is True.
             
     Returns
         int | float | Any: converted to numeric type, if possible.
@@ -290,14 +271,14 @@ def numify(item: Any, raise_error: bool = False) -> int | float | Any:
             
 @functools.singledispatch
 def pathlibify(item: str | pathlib.Path, /) -> pathlib.Path:
-    """Converts string 'path' to pathlib.Path object.
+    """Converts string `path` to pathlib.Path object.
 
     Args:
         item (str | pathlib.Path): either a string summary of a path or a 
             pathlib.Path object.
 
     Raises:
-        TypeError if 'path' is neither a str or pathlib.Path type.
+        TypeError if `path` is neither a str or pathlib.Path type.
 
     Returns:
         pathlib.Path object.
@@ -312,15 +293,15 @@ def pathlibify(item: str | pathlib.Path, /) -> pathlib.Path:
     
 @functools.singledispatch           
 def stringify(item: Any, /, default: Optional[Any] = None) -> Any:
-    """Converts 'item' to a str from a Sequence.
+    """Converts `item` to a str from a Sequence.
     
     Args:
         item (Any): item to convert to a str from a list if it is a list.
-        default (Any): value to return if 'item' is equivalent to a null
+        default (Any): value to return if `item` is equivalent to a null
             value when passed. Defaults to None.
     
     Raises:
-        TypeError: if 'item' is not a str or list-like object.
+        TypeError: if `item` is not a str or list-like object.
         
     Returns:
         Any: str, if item was a list, None or the default value if a null value
@@ -348,14 +329,14 @@ def tuplify(item: Any, /, default: Optional[Any] = None) -> Any:
 
     Args:
         item (Any): item to be transformed into a tuple.
-        default (Any): the default value to return if 'item' is None.
+        default (Any): the default value to return if `item` is None.
             Unfortunately, to indicate you want None to be the default value,
-            you need to put 'None' in quotes. If not passed, 'default'
+            you need to put `None` in quotes. If not passed, `default`
             is set to ().
 
     Returns:
-        tuple[Any]: a passed tuple, 'item' converted to a tuple, or 
-            'default'.
+        tuple[Any]: a passed tuple, `item` converted to a tuple, or 
+            `default`.
 
     """
     if item is None:
@@ -411,7 +392,7 @@ def windowify(
     length: int, 
     fill_value: Optional[Any] = None, 
     step: Optional[int] = 1) -> Sequence[Any]:
-    """Returns a sliding window of length 'n' over 'item'.
+    """Returns a sliding window of `length` over `item`.
 
     This code is adapted from more_itertools.windowed to remove a dependency.
    
@@ -424,7 +405,7 @@ def windowify(
             Defaults to 1.
             
     Raises:
-        ValueError: if 'length' is less than 0 or step is less than 1.
+        ValueError: if `length` is less than 0 or step is less than 1.
         
     Returns:
         Sequence[Any]: windowed sequence derived from arguments.      
@@ -456,42 +437,42 @@ def windowify(
 
 @integerify.register
 def float_to_int(item: float, /) -> int:
-    """Converts 'item' to an int.
+    """Converts `item` to an int.
     
     Args:
         item (float): item to convert.
         
     Returns:
-        int: derived from 'item'.
+        int: derived from `item`.
         
     """ 
     return int(item)
 
 @integerify.register
 def str_to_int(item: str, /) -> int:
-    """Converts 'item' to an int.
+    """Converts `item` to an int.
     
     Args:
         item (str): item to convert.
         
     Returns:
-        int: derived from 'item'.
+        int: derived from `item`.
         
     """    
     return int(item)
 
 # @camina.dynamic.dispatcher   
 def to_list(item: Any, /) -> list[Any]:
-    """Converts 'item' to a list.
+    """Converts `item` to a list.
     
     Args:
         item (Any): item to convert to a list.
 
     Raises:
-        TypeError: if 'item' is a type that is not registered.
+        TypeError: if `item` is a type that is not registered.
 
     Returns:
-        list[Any]: derived from 'item'.
+        list[Any]: derived from `item`.
 
     """
     if isinstance(item, list[Any]):
@@ -516,16 +497,16 @@ def str_to_list(item: str, /) -> list[Any]:
 
 # @camina.dynamic.dispatcher   
 def to_float(item: Any, /) -> float:
-    """Converts 'item' to a float.
+    """Converts `item` to a float.
     
     Args:
         item (Any): item to convert to a float.
 
     Raises:
-        TypeError: if 'item' is a type that is not registered.
+        TypeError: if `item` is a type that is not registered.
 
     Returns:
-        float: derived from 'item'.
+        float: derived from `item`.
 
     """
     if isinstance(item, float):
@@ -563,16 +544,16 @@ def str_to_float(item: str, /) -> float:
 
 # @camina.dynamic.dispatcher   
 def to_path(item: Any, /) -> pathlib.Path:
-    """Converts 'item' to a pathlib.Path.
+    """Converts `item` to a pathlib.Path.
     
     Args:
         item (Any): item to convert to a pathlib.Path.
 
     Raises:
-        TypeError: if 'item' is a type that is not registered.
+        TypeError: if `item` is a type that is not registered.
 
     Returns:
-        pathlib.Path: derived from 'item'.
+        pathlib.Path: derived from `item`.
 
     """
     if isinstance(item, pathlib.Path):
@@ -597,16 +578,16 @@ def str_to_path(item: str, /) -> pathlib.Path:
 
 # @camina.dynamic.dispatcher   
 def to_str(item: Any, /) -> str:
-    """Converts 'item' to a str.
+    """Converts `item` to a str.
     
     Args:
         item (Any): item to convert to a str.
 
     Raises:
-        TypeError: if 'item' is a type that is not registered.
+        TypeError: if `item` is a type that is not registered.
 
     Returns:
-        str: derived from 'item'.
+        str: derived from `item`.
 
     """
     if isinstance(item, str):
@@ -685,7 +666,7 @@ def path_to_str(item: pathlib.Path, /) -> str:
 def datetime_to_string(
     item: datetime.datetime, /,
     time_format: Optional[str] = '%Y-%m-%d_%H-%M') -> str:
-    """ Return datetime 'item' as a str based on 'time_format'.
+    """ Return datetime `item` as a str based on `time_format`.
     
     Args:
         item (datetime.datetime): datetime object to convert to a str.
@@ -694,7 +675,7 @@ def datetime_to_string(
             Defaults to '%Y-%m-%d_%H-%M'.
             
     Returns:
-        str: converted datetime 'item'.
+        str: converted datetime `item`.
             
     """
     return item.strftime(time_format)
