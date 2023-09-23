@@ -50,10 +50,10 @@ class Name(object):
     """Descriptor for a name attribute.
     
     This class automatically provides a name attribute to an object using the
-    'KEY_NAMER' function. 
+    '_KEY_NAMER' function. 
 
     Args:
-        KEY_NAMER (Optional[Callable[[object | Type[Any]], str]]): function that
+        _KEY_NAMER (Optional[Callable[[object | Type[Any]], str]]): function that
             creates a name if one has not been stored. Defaults to namify.
             
     Attributes:
@@ -61,7 +61,7 @@ class Name(object):
             with a leading underscore added.
             
     """
-    KEY_NAMER: Optional[Callable[[object | Type[Any]], str]] = namify
+    _KEY_NAMER: Optional[Callable[[object | Type[Any]], str]] = namify
         
     """ Dunder Methods """
 
@@ -69,7 +69,7 @@ class Name(object):
         self, 
         owner: object, 
         objtype: Optional[Type[Any]] = None) -> Any:
-        """Returns name stored in 'private_name' of 'owner' of calls 'KEY_NAMER'.
+        """Returns name stored in 'private_name' of 'owner' of calls '_KEY_NAMER'.
 
         Args:
             owner (object): object of which this descriptor is an attribute.
@@ -82,7 +82,7 @@ class Name(object):
         try:
             return getattr(owner, self.private_name)
         except AttributeError:
-            return self.KEY_NAMER(owner)            
+            return self._KEY_NAMER(owner)            
 
     def __set__(self, owner: object, value: Any) -> None:
         """Stores 'value' in 'private_name' of 'owner'.

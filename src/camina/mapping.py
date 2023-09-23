@@ -322,13 +322,13 @@ class Catalog(Dictionary):
 
         """
         # Returns a list of all values if the 'all' key is sought.
-        if key in configuration.ALL_KEYS:
+        if key in configuration._ALL_KEYS:
             return list(self.contents.values())
         # Returns a list of values for keys listed in 'default' attribute.
-        elif key in configuration.DEFAULT_KEYS:
+        elif key in configuration._DEFAULT_KEYS:
             return self[self.default]
         # Returns an empty list if a null value is sought.
-        elif key in configuration.NONE_KEYS:
+        elif key in configuration._NONE_KEYS:
             if self.default_factory is None:
                 if self.always_return_list:
                     return []

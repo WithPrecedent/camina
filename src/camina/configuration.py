@@ -10,22 +10,19 @@ To Do:
 from __future__ import annotations
 
 import dataclasses
-from typing import TYPE_CHECKING, Any
+from collections.abc import Callable
+from typing import Any
 
 from . import convert
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-
-ALL_KEYS: list[Any] = ['all', 'All', ['all'], ['All']]
-DEFAULT_KEYS: list[Any] = [
-    'default', 'defaults', 'Default', 'Defaults', ['default'], ['defaults'], 
+_ALL_KEYS: list[Any] = ['all', 'All', ['all'], ['All']]
+_DEFAULT_KEYS: list[Any] = [
+    'default', 'defaults', 'Default', 'Defaults', ['default'], ['defaults'],
     ['Default'], ['Defaults']]
-KEY_NAMER: Callable[[object | type[Any]], str] = convert.namify
-METHOD_NAMER: Callable[[object | type[Any]], str] = (
+_KEY_NAMER: Callable[[object | type[Any]], str] = convert.namify
+_METHOD_NAMER: Callable[[object | type[Any]], str] = (
     lambda x: f'from_{convert.namify(x)}')
-NONE_KEYS: list[Any] = ['none', 'None', ['none'], ['None']]
+_NONE_KEYS: list[Any] = ['none', 'None', ['none'], ['None']]
 
 
 @dataclasses.dataclass
@@ -48,3 +45,36 @@ class MISSING_VALUE(object):
 # MISSING, instance of MISSING_VALUE, should be used for missing values as an 
 # alternative to None. This provides a fuller repr and traceback.
 MISSING = MISSING_VALUE()
+
+
+def set_key_namer(namer: Callable[[object | type[Any]], str]) -> None:
+    """Sets the global default function used to name items.
+
+    Args:
+        namer (Callable[[object | Type[Any]], str]): function that returns a 
+            str name of any item passed.
+
+    Raises:
+        TypeError: if 'namer' is not callable.
+
+    """
+    if isinstance(namer, Callable):
+        globals()['KEYER'] = namer
+    else:
+        raise TypeError('namer argument must be a callable')
+
+def set_method_namer(namer: Callable[[object | type[Any]], str]) -> None:
+    """Sets the global default function used to name factory methods.
+
+    Args:
+        namer (Callable[[object | Type[Any]], str]): function that returns a 
+            str name of any item passed.
+
+    Raises:
+        TypeError: if 'namer' is not callable.
+
+    """
+    if isinstance(namer, Callable):
+        globals()['_METHOD_NAMER'] = namer
+    else:
+        raise TypeError('namer argument must be a callable')
