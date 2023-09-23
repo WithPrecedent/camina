@@ -37,7 +37,7 @@ def how_soon_is_now(
 
     """
     time_string = convert.datetime_to_string(
-        item = datetime.datetime.now(tz_info = datetime.timezone.utc)  # noqa: DTZ005
+        item = datetime.datetime.now(tz_info = datetime.timezone.utc),
         time_format = time_format)
     if prefix is not None:
         return f'{prefix}{time_string}'

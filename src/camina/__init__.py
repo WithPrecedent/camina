@@ -10,7 +10,7 @@ __all__: list[str] = []
 
 
 from .base import Base, Descriptor, Proxy
-from .clock import how_soon_is_now, timer
+# from .clock import how_soon_is_now, timer
 from .configuration import set_key_namer, set_method_namer
 from .convert import (
     dictify,
@@ -80,3 +80,4 @@ from .modify import (
     uniquify,
 )
 from .sequence import Hashable, Listing
+

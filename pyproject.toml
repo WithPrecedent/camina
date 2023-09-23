@@ -38,7 +38,7 @@ plugins = [
 
 [tool.pdm.build]
 package-dir = "src"
-editable-backend = "editables"
+# editable-backend = "editables"
 
 [tool.pdm.dev-dependencies]
 docs = [
@@ -174,5 +174,5 @@ docstring-quotes = "double"
 [tool.ruff.isort]
 case-sensitive = true
 known-first-party = ["camina"]
-required-imports = ["from __future__ import annotations"]
-split-on-trailing-comma = false
+# required-imports = ["from __future__ import annotations"]
+# split-on-trailing-comma = false
