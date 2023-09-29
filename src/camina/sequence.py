@@ -1,47 +1,47 @@
 """List-like classes
 
 Contents:
-    Listing (base.Bunch, MutableSequence): drop-in replacement for a python 
+    Listing (base.Bunch, MutableSequence): drop-in replacement for a python
         list with additional functionality.
     Hybrid (Listing): iterable with both dict and list interfaces. Stored items
         must be hashable or have a 'name' attribute.
-    
+
 To Do:
 
-        
+
 """
 from __future__ import annotations
-from collections.abc import Hashable, Mapping, MutableSequence, Sequence
+
 import copy
 import dataclasses
-from typing import Any, Optional
+from collections.abc import Hashable, Mapping, MutableSequence, Sequence
+from typing import Any
 
 import miller
 
-from . import base
-from . import convert
-from . import label
+from . import base, convert, label
 
-       
+
 @dataclasses.dataclass
 class Listing(base.Bunch, MutableSequence):
     """Basic camina list replacement.
-    
-    A Listing differs from an ordinary python list in ways required by 
-    inheriting from Bunch: 'add', 'delete', and 'subset' methods, and allowing 
-    the '+' operator to join Listings with other list-like objects) and in 1 
+
+    A Listing differs from an ordinary python list in ways required by
+    inheriting from Bunch: 'add', 'delete', and 'subset' methods, and allowing
+    the '+' operator to join Listings with other list-like objects) and in 1
     other way:
         1) It includes a 'prepend' method for adding one or more items to the
             beginning of the stored list.
-    
+
     The 'add' method attempts to extend 'contents' with the item to be added.
     If this fails, it appends the item to 'contents'.
-            
+
     Args:
-        contents (MutableSequence[Any]): items to store in a list. Defaults to 
+        contents (MutableSequence[Any]): items to store in a list. Defaults to
             an empty list.
-        
+
     """
+
     contents: MutableSequence[Any] = dataclasses.field(default_factory = list)
 
     """ Instance Methods """
@@ -51,10 +51,10 @@ class Listing(base.Bunch, MutableSequence):
 
         The method will extend all passed sequences, except str types, which it
         will append.
-        
+
         Args:
             item (Any | Sequence[Any]): item(s) to add to 'contents'.
-                
+
         """
         if miller.is_sequence(item = item):
             self.contents.extend(item)
@@ -71,14 +71,14 @@ class Listing(base.Bunch, MutableSequence):
         """
         del self.contents[item]
         return
-    
+
     def insert(self, index: int, item: Any) -> None:
         """Inserts 'item' at 'index' in 'contents'.
 
         Args:
             index (int): index to insert 'item' at.
             item (Any): object to be inserted.
-            
+
         """
         self.contents.insert(index, item)
         return
@@ -86,12 +86,12 @@ class Listing(base.Bunch, MutableSequence):
     def prepend(self, item: Any | Sequence[Any]) -> None:
         """Prepends 'item' to 'contents'.
 
-        If 'item' is a non-str sequence, 'prepend' adds its contents to the 
+        If 'item' is a non-str sequence, 'prepend' adds its contents to the
         stored list in the order they appear in 'item'.
-        
+
         Args:
             item (Any | Sequence[Any]): item(s) to prepend to 'contents'.
-                
+
         """
         if miller.is_sequence(item = item):
             for thing in reversed(item):
@@ -99,26 +99,26 @@ class Listing(base.Bunch, MutableSequence):
         else:
             self.insert(0, item)
         return
-                   
+
     def subset(
-        self, 
-        include: Optional[Any | Sequence[Any]] = None, 
-        exclude: Optional[Any | Sequence[Any]] = None) -> Listing:
+        self,
+        include: Any | Sequence[Any] | None = None,
+        exclude: Any | Sequence[Any] | None = None) -> Listing:
         """Returns a new instance with a subset of 'contents'.
 
         This method applies 'include' before 'exclude' if both are passed. If
         'include' is None, all existing items will be added to the new subset
         class instance before 'exclude' is applied.
-        
+
         Args:
-            include (Optional[Any | Sequence[Any]]): item(s) to include in 
+            include (Optional[Any | Sequence[Any]]): item(s) to include in
                 the new instance. Defaults to None.
-            exclude (Optional[Any | Sequence[Any]]): item(s) to exclude in 
-                the new instance. Defaults to None.       
-        
+            exclude (Optional[Any | Sequence[Any]]): item(s) to exclude in
+                the new instance. Defaults to None.
+
         Raises:
             ValueError: if 'include' and 'exclude' are both None.
-                              
+
         Returns:
             Listing: with only items from 'include' and no items in 'exclude'.
 
@@ -137,7 +137,7 @@ class Listing(base.Bunch, MutableSequence):
             new_listing = copy.deepcopy(self)
             new_listing.contents = contents
         return new_listing
-                       
+
     """ Dunder Methods """
 
     def __getitem__(self, index: Any) -> Any:
@@ -151,9 +151,9 @@ class Listing(base.Bunch, MutableSequence):
 
         """
         return self.contents[index]
-            
+
     def __setitem__(self, index: Any, value: Any) -> None:
-        """sets 'key' in 'contents' to 'value'.
+        """Sets 'key' in 'contents' to 'value'.
 
         Args:
             index (Any): index to set 'value' to in 'contents'.
@@ -167,32 +167,32 @@ class Listing(base.Bunch, MutableSequence):
 @dataclasses.dataclass
 class Hybrid(Listing):
     """Iterable that has both a dict and list interfaces.
-    
+
     Hybrid combines the functionality and interfaces of python dicts and lists.
     It allows duplicate keys and list-like iteration while supporting the easier
     access methods of dictionaries. In order to support this hybrid approach to
-    iterables, Hybrid can only store items that are hashable or have a 'name' 
+    iterables, Hybrid can only store items that are hashable or have a 'name'
     attribute or property that contains or returns a hashable value.
 
-    A Hybrid inherits the differences between a Listing and an ordinary python 
+    A Hybrid inherits the differences between a Listing and an ordinary python
     list.
-    
+
     A Hybrid differs from a Listing in 3 significant ways:
         1) It only stores hashable items or objects for which a str name can be
             derived (using the namify function).
-        2) Hybrid has an interface of both a dict and a list, but stores a list. 
+        2) Hybrid has an interface of both a dict and a list, but stores a list.
             Hybrid does this by taking advantage of the 'name' attribute or
-            hashability of stored items. A 'name' or hash acts as a key to 
-            create the facade of a dict with the items in the stored list 
-            serving as values. This allows for duplicate keys for storing items, 
-            simpler iteration than a dict, and support for returning multiple 
-            matching items. This design comes at the expense of lookup speed. As 
-            a result, Hybrid should only be used if a high volume of access 
-            calls is not anticipated. Ordinarily, the loss of lookup speed 
+            hashability of stored items. A 'name' or hash acts as a key to
+            create the facade of a dict with the items in the stored list
+            serving as values. This allows for duplicate keys for storing items,
+            simpler iteration than a dict, and support for returning multiple
+            matching items. This design comes at the expense of lookup speed. As
+            a result, Hybrid should only be used if a high volume of access
+            calls is not anticipated. Ordinarily, the loss of lookup speed
             should have negligible effect on overall performance.
-        3) Hybrids should not store int types. This ensures that when, for 
-            example, a 'hybrid[3]' is called, the item at that index is 
-            returned. If int types are stored, that call would create 
+        3) Hybrids should not store int types. This ensures that when, for
+            example, a 'hybrid[3]' is called, the item at that index is
+            returned. If int types are stored, that call would create
             uncertainty as to whether an index or item should be returned. By
             design, int types are assumed to be calls to return the item at that
             index.
@@ -202,14 +202,15 @@ class Hybrid(Listing):
     Args:
         contents (MutableSequence[Hashable]): items to store that are hashable
             or have a 'name' attribute. Defaults to an empty list.
-        default_factory (Optional[Any]): default value to return or default 
-            function to call when the 'get' method is used. Defaults to None. 
-                          
+        default_factory (Optional[Any]): default value to return or default
+            function to call when the 'get' method is used. Defaults to None.
+
     """
+
     contents: MutableSequence[Hashable] = dataclasses.field(
         default_factory = list)
-    default_factory: Optional[Any] = None
-        
+    default_factory: Any | None = None
+
     """ Instance Methods """
 
     def delete(self, item: Any | int) -> None:
@@ -229,22 +230,22 @@ class Hybrid(Listing):
             self.contents = [
                 c for c in self.contents if label.namify(c) != item]
         return
-    
-    def get(self, key: Hashable, default: Optional[Any] = None) -> Any:
+
+    def get(self, key: Hashable, default: Any | None = None) -> Any:
         """Returns value in 'contents' or default options.
-        
+
         Args:
             key (Hashable): key for value in 'contents'.
-            default (Optional[Any]): default value to return if 'key' is not 
+            default (Optional[Any]): default value to return if 'key' is not
                 found in 'contents'.
-        
+
         Raises:
             KeyError: if 'key' is not in the Hybrid and 'default' and the
                 'default_factory' attribute are both None.
-        
+
         Returns:
-            Any: value matching key in 'contents' or 'default_factory' value. 
-            
+            Any: value matching key in 'contents' or 'default_factory' value.
+
         """
         try:
             return self[key]
@@ -262,60 +263,60 @@ class Hybrid(Listing):
 
     def items(self) -> tuple[tuple[Hashable, ...], tuple[Any, ...]]:
         """Emulates python dict 'items' method.
-        
+
         Returns:
-            tuple[tuple[Hashable, ...], tuple[Any, ...]]: a tuple equivalent to 
-                dict.items(). A Hybrid cannot actually create an ItemsView 
-                because that would eliminate any duplicate keys, which are 
+            tuple[tuple[Hashable, ...], tuple[Any, ...]]: a tuple equivalent to
+                dict.items(). A Hybrid cannot actually create an ItemsView
+                because that would eliminate any duplicate keys, which are
                 permitted by Hybrid.
-            
+
         """
         return tuple(zip(self.keys(), self.values()))
 
     def keys(self) -> tuple[Hashable, ...]:
         """Emulates python dict 'keys' method.
-        
+
         Returns:
-            tuple[Hashable, ...]: a tuple equivalent to dict.keys(). A Hybrid 
-                cannot actually create an KeysView because that would eliminate 
+            tuple[Hashable, ...]: a tuple equivalent to dict.keys(). A Hybrid
+                cannot actually create an KeysView because that would eliminate
                 any duplicate keys, which are permitted by Hybrid.
-            
+
         """
         return tuple(label.namify(c) for c in self.contents)
 
     def setdefault(self, value: Any) -> None:
-        """sets default value to return when 'get' method is used.
-        
+        """Sets default value to return when 'get' method is used.
+
         Args:
             value (Any): default value to return.
-            
+
         """
-        self.default_factory = value 
+        self.default_factory = value
         return
 
     def update(self, items: Mapping[Any, Any]) -> None:
         """Mimics the dict 'update' method by extending 'contents' with 'items'.
-        
+
         Args:
-            items (Mapping[Any, Any]): items to add to the 'contents' attribute. 
-                The values of 'items' are added to 'contents' and the keys 
-                become the 'name' attributes of those values. As a result, the 
-                keys of 'items' are discarded. To mimic dict' update', the 
-                passed 'items' values are added to 'contents' by the 'extend' 
-                method which adds the values to the end of 'contents'.           
-        
+            items (Mapping[Any, Any]): items to add to the 'contents' attribute.
+                The values of 'items' are added to 'contents' and the keys
+                become the 'name' attributes of those values. As a result, the
+                keys of 'items' are discarded. To mimic dict' update', the
+                passed 'items' values are added to 'contents' by the 'extend'
+                method which adds the values to the end of 'contents'.
+
         """
         self.extend(list(items.values()))
         return
 
     def values(self) -> tuple[Any, ...]:
         """Emulates python dict 'values' method.
-        
+
         Returns:
-            tuple[Any, ...]: a tuple equivalent to dict.values(). A Hybrid 
-                cannot actually create an ValuesView because that would 
+            tuple[Any, ...]: a tuple equivalent to dict.values(). A Hybrid
+                cannot actually create an ValuesView because that would
                 eliminate any duplicate keys, which are permitted by Hybrid.
-            
+
         """
         return tuple(self.contents)
 
@@ -323,24 +324,24 @@ class Hybrid(Listing):
 
     def __getitem__(self, key: Hashable | int) -> Any:
         """Returns value(s) for 'key' in 'contents'.
-        
+
         If 'key' is not an int type, this method looks for a matching 'name'
         attribute in the stored instances.
-        
+
         If 'key' is an int type, this method returns the stored item at the
         corresponding index.
-        
-        If only one match is found, a single item is returned. If more are 
-        found, a Hybrid or Hybrid subclass with the matching 'name' attributes 
+
+        If only one match is found, a single item is returned. If more are
+        found, a Hybrid or Hybrid subclass with the matching 'name' attributes
         is returned.
 
         Args:
-            key (Hashable, int): name of an item or index to search for 
+            key (Hashable, int): name of an item or index to search for
                 in 'contents'.
 
         Returns:
-            Any: value(s) stored in 'contents' that correspond to 'key'. If 
-                there is more than one match, the return is a Hybrid or Hybrid 
+            Any: value(s) stored in 'contents' that correspond to 'key'. If
+                there is more than one match, the return is a Hybrid or Hybrid
                 subclass with that matching stored items.
 
         """
@@ -355,9 +356,9 @@ class Hybrid(Listing):
                 return matches[0]
             else:
                 return matches
-            
+
     def __setitem__(self, key: Any | int, value: Any) -> None:
-        """sets 'key' in 'contents' to 'value'.
+        """Sets 'key' in 'contents' to 'value'.
 
         Args:
             key (Any | int): if key isn't an int, it is ignored (since the

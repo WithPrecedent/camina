@@ -5,9 +5,9 @@ Contents:
     hashify: converts to or validates a hashable object.
     instancify: converts to or validates an instance. If it is already an
         instance, any passed kwargs are added as attributes to the instance.
-    integerify: converts to or validates an int. 
+    integerify: converts to or validates an int.
     iterify: converts to or validates an iterable.
-    kwargify: uses annotations to turn positional arguments into keyword 
+    kwargify: uses annotations to turn positional arguments into keyword
         arguments.
     listify: converts to or validates a list.
     namify: returns hashable name for passed item.
@@ -57,7 +57,7 @@ from collections.abc import (
     MutableSequence,
     Sequence,
 )
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from . import modify
 
@@ -124,14 +124,14 @@ def instancify(item: type[Any] | object, **kwargs: Any) -> Any:
     name.
 
     Args:
-        item (Type[Any] | object)): class to make an instance out of by 
+        item (Type[Any] | object)): class to make an instance out of by
             passing kwargs or an instance to add kwargs to as attributes.
 
     Raises:
         TypeError: if `item` is neither a class nor instance.
 
     Returns:
-        object: a class instance with `kwargs` as attributes or passed as 
+        object: a class instance with `kwargs` as attributes or passed as
             parameters (if `item` is a class).
 
     """
@@ -144,10 +144,10 @@ def instancify(item: type[Any] | object, **kwargs: Any) -> Any:
     else:
         raise TypeError('item must be a class or class instance')
 
-@functools.singledispatch  
+@functools.singledispatch
 def integerify(item: Any, /) -> int:
     """Converts `item` to an int.
-    
+
     Args:
         item (Any): item to convert.
 
@@ -165,18 +165,18 @@ def integerify(item: Any, /) -> int:
             f'item cannot be converted because it is an '
             f'unsupported type: {type(item).__name__}')
 
-@functools.singledispatch                  
+@functools.singledispatch
 def iterify(item: Any, /) -> Iterable:
     """Returns `item` as an iterable, but does not iterate str types.
-    
+
     Args:
         item (Any): item to turn into an iterable
 
     Returns:
         Iterable: of `item`. A str type will be stored as a single item in an
             Iterable wrapper.
-        
-    """     
+
+    """
     if item is None:
         return iter(())
     elif isinstance(item, (str, bytes)):
@@ -186,20 +186,20 @@ def iterify(item: Any, /) -> Iterable:
             return iter(item)
         except TypeError:
             return iter((item,))
-        
+
 def kwargify(item: type[Any], /, args: tuple[Any]) -> dict[Hashable, Any]:
     """Converts args to kwargs.
-    
+
     Args:
     item (Type): the item with annotations used to construct kwargs.
         args (tuple): arguments without keywords passed to `item`.
-        
+
     Raises:
         ValueError: if there are more args than annotations in `item`.
-        
-    Returns
+
+    Returns:
         dict[Hashable, Any]: kwargs based on `args` and `item`.
-    
+
     """
     annotations = list(item.__annotations__.keys())
     if len(args) > len(annotations):
@@ -207,20 +207,20 @@ def kwargify(item: type[Any], /, args: tuple[Any]) -> dict[Hashable, Any]:
     else:
         return dict(zip(annotations, args))
 
-@functools.singledispatch   
-def listify(item: Any, /, default: Optional[Any] = None) -> Any:
+@functools.singledispatch
+def listify(item: Any, /, default: Any | None = None) -> Any:
     """Returns passed item as a list (if not already a list).
 
     Args:
-        item (Any): item to be transformed into a list to allow proper 
+        item (Any): item to be transformed into a list to allow proper
             iteration.
         default (Optional[Any]): the default value to return if `item` is None.
             Unfortunately, to indicate you want None to be the default value,
-            you need to put `None` in quotes. If not passed, `default` is set to 
+            you need to put `None` in quotes. If not passed, `default` is set to
             [].
 
     Returns:
-        Any: a passed list, `item` converted to a list, or the `default` 
+        Any: a passed list, `item` converted to a list, or the `default`
             argument.
 
     """
@@ -236,24 +236,24 @@ def listify(item: Any, /, default: Optional[Any] = None) -> Any:
     else:
         return [item]
 
-@functools.singledispatch                            
+@functools.singledispatch
 def numify(item: Any, raise_error: bool = False) -> int | float | Any:
     """Converts `item` to a numeric type.
-    
-    If `item` cannot be converted to a numeric type and `raise_error` is False, 
+
+    If `item` cannot be converted to a numeric type and `raise_error` is False,
         `item` is returned as is.
 
     Args:
         item (str): item to be converted.
         raise_error (bool): whether to raise a TypeError when conversion to a
-            numeric type fails (True) or to simply return `item` (False). 
+            numeric type fails (True) or to simply return `item` (False).
             Defaults to False.
 
     Raises:
-        TypeError: if `item` cannot be converted to a numeric type and 
+        TypeError: if `item` cannot be converted to a numeric type and
             `raise_error` is True.
-            
-    Returns
+
+    Returns:
         int | float | Any: converted to numeric type, if possible.
 
     """
@@ -268,13 +268,13 @@ def numify(item: Any, raise_error: bool = False) -> int | float | Any:
                     f'{item} not able to be converted to a numeric type')
             else:
                 return item
-            
+
 @functools.singledispatch
 def pathlibify(item: str | pathlib.Path, /) -> pathlib.Path:
     """Converts string `path` to pathlib.Path object.
 
     Args:
-        item (str | pathlib.Path): either a string summary of a path or a 
+        item (str | pathlib.Path): either a string summary of a path or a
             pathlib.Path object.
 
     Raises:
@@ -290,29 +290,29 @@ def pathlibify(item: str | pathlib.Path, /) -> pathlib.Path:
         return item
     else:
         raise TypeError('item must be str or pathlib.Path type')
-    
-@functools.singledispatch           
-def stringify(item: Any, /, default: Optional[Any] = None) -> Any:
+
+@functools.singledispatch
+def stringify(item: Any, /, default: Any | None = None) -> Any:
     """Converts `item` to a str from a Sequence.
-    
+
     Args:
         item (Any): item to convert to a str from a list if it is a list.
         default (Any): value to return if `item` is equivalent to a null
             value when passed. Defaults to None.
-    
+
     Raises:
         TypeError: if `item` is not a str or list-like object.
-        
+
     Returns:
         Any: str, if item was a list, None or the default value if a null value
-            was passed, or the item as it was passed if there previous two 
+            was passed, or the item as it was passed if there previous two
             conditions don't appply.
 
     """
     if item is None:
         if default is None:
             return ''
-        elif default in ['None', 'none']: 
+        elif default in ['None', 'none']:
             return None
         else:
             return default
@@ -323,8 +323,8 @@ def stringify(item: Any, /, default: Optional[Any] = None) -> Any:
     else:
         raise TypeError('item must be str or a sequence')
 
-@functools.singledispatch    
-def tuplify(item: Any, /, default: Optional[Any] = None) -> Any:
+@functools.singledispatch
+def tuplify(item: Any, /, default: Any | None = None) -> Any:
     """Returns passed item as a tuple (if not already a tuple).
 
     Args:
@@ -335,13 +335,13 @@ def tuplify(item: Any, /, default: Optional[Any] = None) -> Any:
             is set to ().
 
     Returns:
-        tuple[Any]: a passed tuple, `item` converted to a tuple, or 
+        tuple[Any]: a passed tuple, `item` converted to a tuple, or
             `default`.
 
     """
     if item is None:
         if default is None:
-            return tuple()
+            return ()
         elif default in ['None', 'none']:
             return None
         else:
@@ -351,8 +351,8 @@ def tuplify(item: Any, /, default: Optional[Any] = None) -> Any:
     elif isinstance(item, Iterable):
         return tuple(item)
     else:
-        return tuple([item])
-        
+        return (item,)
+
 def typify(item: str) -> Sequence[Any] | int | float | bool | str:
     """Converts stings to appropriate, supported datatypes.
 
@@ -388,33 +388,33 @@ def typify(item: str) -> Sequence[Any] | int | float | bool | str:
                     return item
 
 def windowify(
-    item: Sequence[Any], 
-    length: int, 
-    fill_value: Optional[Any] = None, 
-    step: Optional[int] = 1) -> Sequence[Any]:
+    item: Sequence[Any],
+    length: int,
+    fill_value: Any | None = None,
+    step: int | None = 1) -> Sequence[Any]:
     """Returns a sliding window of `length` over `item`.
 
     This code is adapted from more_itertools.windowed to remove a dependency.
-   
+
     Args:
         item (Sequence[Any]): sequence from which to return windows.
         length (int): length of window.
-        fill_value (Optional[Any]): value to use for items in a window that do 
+        fill_value (Optional[Any]): value to use for items in a window that do
             not exist when length > len(item). Defaults to None.
         step (Optional[Any]): number of items to advance between each window.
             Defaults to 1.
-            
+
     Raises:
         ValueError: if `length` is less than 0 or step is less than 1.
-        
+
     Returns:
-        Sequence[Any]: windowed sequence derived from arguments.      
+        Sequence[Any]: windowed sequence derived from arguments.
 
     """
     if length < 0:
         raise ValueError('length must be >= 0')
     if length == 0:
-        yield tuple()
+        yield ()
         return
     if step < 1:
         raise ValueError('step must be >= 1')
@@ -432,39 +432,39 @@ def windowify(
     elif 0 < i < min(step, length):
         window += (fill_value,) * i
         yield tuple(window)
-                                         
+
 """ Specific Converters """
 
 @integerify.register
 def float_to_int(item: float, /) -> int:
     """Converts `item` to an int.
-    
+
     Args:
         item (float): item to convert.
-        
+
     Returns:
         int: derived from `item`.
-        
-    """ 
+
+    """
     return int(item)
 
 @integerify.register
 def str_to_int(item: str, /) -> int:
     """Converts `item` to an int.
-    
+
     Args:
         item (str): item to convert.
-        
+
     Returns:
         int: derived from `item`.
-        
-    """    
+
+    """
     return int(item)
 
-# @camina.dynamic.dispatcher   
+# @camina.dynamic.dispatcher
 def to_list(item: Any, /) -> list[Any]:
     """Converts `item` to a list.
-    
+
     Args:
         item (Any): item to convert to a list.
 
@@ -491,14 +491,14 @@ def str_to_list(item: str, /) -> list[Any]:
 
     Returns:
         list[Any]: [description]
-    """    
+    """
     """Converts a str to a list."""
     return ast.literal_eval(item)
 
-# @camina.dynamic.dispatcher   
+# @camina.dynamic.dispatcher
 def to_float(item: Any, /) -> float:
     """Converts `item` to a float.
-    
+
     Args:
         item (Any): item to convert to a float.
 
@@ -525,7 +525,7 @@ def int_to_float(item: int, /) -> float:
 
     Returns:
         float: [description]
-    """    
+    """
     """Converts an int to a float."""
     return float(item)
 
@@ -538,14 +538,14 @@ def str_to_float(item: str, /) -> float:
 
     Returns:
         float: [description]
-    """    
+    """
     """Converts a str to a float."""
     return float(item)
 
-# @camina.dynamic.dispatcher   
+# @camina.dynamic.dispatcher
 def to_path(item: Any, /) -> pathlib.Path:
     """Converts `item` to a pathlib.Path.
-    
+
     Args:
         item (Any): item to convert to a pathlib.Path.
 
@@ -563,7 +563,7 @@ def to_path(item: Any, /) -> pathlib.Path:
             f'item cannot be converted because it is an unsupported type: '
             f'{type(item).__name__}')
 
-@pathlibify.register  
+@pathlibify.register
 def str_to_path(item: str, /) -> pathlib.Path:
     """[summary]
 
@@ -572,14 +572,14 @@ def str_to_path(item: str, /) -> pathlib.Path:
 
     Returns:
         pathlib.Path: [description]
-    """    
+    """
     """Converts a str to a pathlib.Path."""
     return pathlib.pathlib.Path(item)
 
-# @camina.dynamic.dispatcher   
+# @camina.dynamic.dispatcher
 def to_str(item: Any, /) -> str:
     """Converts `item` to a str.
-    
+
     Args:
         item (Any): item to convert to a str.
 
@@ -606,7 +606,7 @@ def int_to_str(item: int, /) -> str:
 
     Returns:
         str: [description]
-    """    
+    """
     """Converts an int to a str."""
     return str(item)
 
@@ -619,7 +619,7 @@ def float_to_str(item: float, /) -> str:
 
     Returns:
         str: [description]
-    """    
+    """
     """Converts an float to a str."""
     return str(item)
 
@@ -632,11 +632,11 @@ def list_to_str(item: list[Any], /) -> str:
 
     Returns:
         str: [description]
-    """    
+    """
     """Converts a list to a str."""
     return ', '.join(item)
-   
-# @to_str.register 
+
+# @to_str.register
 def none_to_str(item: None, /) -> str:
     """[summary]
 
@@ -645,7 +645,7 @@ def none_to_str(item: None, /) -> str:
 
     Returns:
         str: [description]
-    """    
+    """
     """Converts None to a str."""
     return 'None'
 
@@ -658,24 +658,24 @@ def path_to_str(item: pathlib.Path, /) -> str:
 
     Returns:
         str: [description]
-        
-    """    
+
+    """
     return str(item)
 
 # @to_str.register
 def datetime_to_string(
     item: datetime.datetime, /,
-    time_format: Optional[str] = '%Y-%m-%d_%H-%M') -> str:
-    """ Return datetime `item` as a str based on `time_format`.
-    
+    time_format: str | None = '%Y-%m-%d_%H-%M') -> str:
+    """Return datetime `item` as a str based on `time_format`.
+
     Args:
         item (datetime.datetime): datetime object to convert to a str.
         time_format (Optional[str]): format to create a str from datetime. The
-            passed argument should follow the rules of datetime.strftime. 
+            passed argument should follow the rules of datetime.strftime.
             Defaults to '%Y-%m-%d_%H-%M'.
-            
+
     Returns:
         str: converted datetime `item`.
-            
+
     """
     return item.strftime(time_format)

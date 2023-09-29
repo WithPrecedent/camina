@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import datetime
 import time
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from . import convert
 
@@ -28,8 +28,8 @@ def how_soon_is_now(
 
     Args:
         prefix: a prefix to add to the returned str.
-        time_format: format to create a str from datetime. The passed argument 
-            should follow the rules of datetime.strftime. Defaults to 
+        time_format: format to create a str from datetime. The passed argument
+            should follow the rules of datetime.strftime. Defaults to
             '%Y-%m-%d_%H-%M'.
 
     Returns:
@@ -45,11 +45,11 @@ def how_soon_is_now(
         return time_string
 
 def timer(
-    process: Callable[..., Optional[Any]]) -> (Callable[..., Optional[Any]]):
+    process: Callable[..., Any | None]) -> (Callable[..., Any | None]):
     """Decorator for computing the length of time a process takes.
 
     Args:
-        process: wrapped callable to compute the time it takes to complete its 
+        process: wrapped callable to compute the time it takes to complete its
             execution.
 
     """
@@ -57,10 +57,10 @@ def timer(
         name = process.__name__
     except AttributeError:
         name = process.__class__.__name__
-    def shell_timer(operation: Callable[..., Optional[Any]]) -> (
-        Callable[..., Optional[Any]]):
+    def shell_timer(operation: Callable[..., Any | None]) -> (
+        Callable[..., Any | None]):
         def decorated(*args: Any, **kwargs: Any) -> (
-            Callable[..., Optional[Any]]):
+            Callable[..., Any | None]):
             def convert_time(seconds: int | float) -> tuple[int, int, int]:
                 minutes, seconds = divmod(seconds, 60)
                 hours, minutes = divmod(minutes, 60)

@@ -1,7 +1,7 @@
 """Tests for core classes
 
 To Do:
-    
+
 """
 from __future__ import annotations
 import dataclasses
@@ -11,19 +11,19 @@ import camina
 
 @dataclasses.dataclass
 class TestClass(object):
-    
+
     name: str = 'something'
 
 
 @dataclasses.dataclass
 class AnotherClass(object):
-    
+
     name: str = 'another'
 
 
 @dataclasses.dataclass
 class ThirdClass(object):
-    
+
     name: str = 'third'
 
 
@@ -37,7 +37,7 @@ def test_proxy():
     del proxy.id
     assert not hasattr(proxy, 'id')
     return
-    
+
 def test_listing():
     listing = camina.Listing(contents = ['a', 'b', 'c'])
     assert listing[1] == 'b'
@@ -89,11 +89,11 @@ def test_hybrid():
 
 def test_dictionary():
     alt_created = camina.Dictionary.fromkeys(
-        keys = ['a', 'b', 'c'], 
+        keys = ['a', 'b', 'c'],
         value = 'tree')
     assert alt_created['a'] == 'tree'
     dictionary = camina.Dictionary(
-        contents = {'a': 'b', 'c': 'd'}, 
+        contents = {'a': 'b', 'c': 'd'},
         default_factory = 'Nada')
     assert dictionary.get('f') == 'Nada'
     assert dictionary['a'] == 'b'
@@ -121,7 +121,7 @@ def test_catalog():
     assert 'tester' not in catalog
     assert len(catalog) == 1
     return
-    
+
 def test_repository():
     repository = camina.Repository()
     repository.add(AnotherClass())
@@ -131,7 +131,7 @@ def test_repository():
     repository.delete('random_name')
     assert 'random_name' not in repository
     return
- 
+
 if __name__ == '__main__':
     test_proxy()
     test_listing()
@@ -139,4 +139,4 @@ if __name__ == '__main__':
     test_dictionary()
     test_catalog()
     test_repository()
-   
+

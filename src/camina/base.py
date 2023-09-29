@@ -1,18 +1,18 @@
 """Base classes for extensible, flexible, lightweight containers
 
 Contents:
-    Bunch (Collection, abc.ABC): base class for general containers in `camina`. 
+    Bunch (Collection, abc.ABC): base class for general containers in `camina`.
         It requires subclasses to have `add`, `delete`, and `subset` methods.
-    Descriptor (object): interface for descriptors. `__get__`, `__set__`, and a 
-        fully-featured `__set_name__` are provided. `__set_name__` creates 
+    Descriptor (object): interface for descriptors. `__get__`, `__set__`, and a
+        fully-featured `__set_name__` are provided. `__set_name__` creates
         `attribute_name`, `owner`, and `private_name` attributes.
-    Proxy (Container): basic wrapper for a stored python object. Dunder methods 
-        attempt to intelligently apply access methods to either the wrapper or 
+    Proxy (Container): basic wrapper for a stored python object. Dunder methods
+        attempt to intelligently apply access methods to either the wrapper or
         the wrapped item.
 
 To Do:
-    Fix Proxy setter. In the commented out method, the wrapper and wrapped are 
-        not being set at the right time, likely due to the inner workings of 
+    Fix Proxy setter. In the commented out method, the wrapper and wrapped are
+        not being set at the right time, likely due to the inner workings of
         `hasattr`.
     Add more dunder methods to address less common and fringe cases for use
         of a Proxy class.
@@ -32,17 +32,17 @@ class Bunch(Collection, abc.ABC):
 
     A Bunch differs from a general python Collection in 4 ways:
         1) It must include an `add` method which provides the default mechanism
-            for adding new items to the collection. `add` allows a subclass to 
-            designate the preferred method of adding to the collections`s stored 
+            for adding new items to the collection. `add` allows a subclass to
+            designate the preferred method of adding to the collections`s stored
             data without replacing other access methods.
         2) It must include a `delete` method which provides the default
-            mechanism for deleting items in the collection. `delete` is called 
+            mechanism for deleting items in the collection. `delete` is called
             by the `__delitem__` dunder method to delete stored items.
         3) A subclass must include a `subset` method with optional `include` and
             `exclude` parameters for returning a subset of the Bunch subclass.
-        4) It supports the '+' operator being used to join a Bunch subclass 
-            instance of the same python type (mapping, sequence, tuple, etc.). 
-            The '+' operator calls the Bunch subclass `add` method to implement 
+        4) It supports the '+' operator being used to join a Bunch subclass
+            instance of the same python type (mapping, sequence, tuple, etc.).
+            The '+' operator calls the Bunch subclass `add` method to implement
             how the added item(s) is/are added to the Bunch subclass instance.
 
     Args:
@@ -169,10 +169,10 @@ class Descriptor(object):
     docs: https://docs.python.org/3/howto/descriptor.html
 
     Attributes:
-        attribute_name: name of the attribute for the Descriptor instance in 
+        attribute_name: name of the attribute for the Descriptor instance in
             `owner`.
-        private_name: `attribute_name` with a leading underscore added. This 
-            attribute contains the name of an attribute in `owner` (and not 
+        private_name: `attribute_name` with a leading underscore added. This
+            attribute contains the name of an attribute in `owner` (and not
             the descriptor) where the data for a descriptor will be stored.
         owner: object of which the Descriptor instance is an attribute.
 
@@ -181,8 +181,8 @@ class Descriptor(object):
     """ Dunder Methods """
 
     def __get__(
-        self, 
-        owner: object, 
+        self,
+        owner: object,
         objtype: type[Any] | None = None) -> Any:
         """Returns item stored in `private_name` of `owner.
 
@@ -212,7 +212,7 @@ class Descriptor(object):
 
         Args:
             owner: object of which this validator is an attribute.
-            name: name of this attribute in `owner`. 
+            name: name of this attribute in `owner`.
 
         """
         self.attribute_name = name
@@ -226,14 +226,14 @@ class Proxy(Container):
     """Mostly transparent wrapper class.
 
     A Proxy differs than an ordinary container in 2 significant ways:
-        1) Access methods for getting, setting, and deleting that try to 
+        1) Access methods for getting, setting, and deleting that try to
             intelligently direct the user's call to the proxy or stored object.
             So, for example, when a user tries to set an attribute on the proxy,
             the method will replace an attribute that exists in the proxy if
             one exists. But if there is no such attribute, the set method is
             applied to the object stored in `contents`.
         2) When an `in` call is made, the `__contains__` method first looks to
-            see if the item is stored in `contents` (if `contents` is a 
+            see if the item is stored in `contents` (if `contents` is a
             collection). If that check gets an errorr, the method then checks
             if the item is equivalent to `contents`. This allows a Proxy to be
             agnostic as to the type of item(s) in `contents` while returning the
@@ -259,7 +259,7 @@ class Proxy(Container):
             item: item to check versus `contents`.
 
         Returns:
-            bool: if `item` is in or equivalent to `contents` (True). Otherwise, 
+            bool: if `item` is in or equivalent to `contents` (True). Otherwise,
                 it returns False.
 
         """
@@ -274,7 +274,7 @@ class Proxy(Container):
     def __getattr__(self, attribute: str) -> Any:
         """Looks for `attribute` in `contents`.
 
-        If `attribute` exists in the Proxy subclass, this method will not be 
+        If `attribute` exists in the Proxy subclass, this method will not be
         called and the contents of that attribute will be returned.
 
         Args:
@@ -299,7 +299,7 @@ class Proxy(Container):
         #     except AttributeError:
         #         raise AttributeError(
         #             f'{attribute} was not found in '
-        #             f'{object.__getattribute__(self, "__name__")}') 
+        #             f'{object.__getattribute__(self, "__name__")}')
 
     # def __setattr__(self, attribute: str, value: Any) -> None:
     #     """Sets 'attribute' to 'value'.
@@ -324,15 +324,15 @@ class Proxy(Container):
     # def __delattr__(self, attribute: str) -> None:
     #     """Deletes 'attribute'.
 
-    #     If 'attribute' exists in this class instance, it is deleted. Otherwise, 
-    #     this method attempts to delete 'attribute' from what is stored in 
+    #     If 'attribute' exists in this class instance, it is deleted. Otherwise,
+    #     this method attempts to delete 'attribute' from what is stored in
     #     'contents'.
 
     #     Args:
     #         attribute (str): name of attribute to set.
 
     #     Raises:
-    #         AttributeError: if 'attribute' is neither found in the Proxy 
+    #         AttributeError: if 'attribute' is neither found in the Proxy
     #             subclass nor in 'contents'.
 
     #     """

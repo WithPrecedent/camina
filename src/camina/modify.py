@@ -12,7 +12,7 @@ Contents:
             'divider'.
     Subtractors:
         deduplicate (dispatcher): removes duplicate data from an item.
-        drop_dunders: drops strings from a list if they start and end with 
+        drop_dunders: drops strings from a list if they start and end with
             double underscores.
         drop_prefix (dispatcher): removes a str prefix from an item.
         drop_prefix_from_dict
@@ -23,7 +23,7 @@ Contents:
         drop_privates
         drop_substring (dispatcher): removes a substring from an item.
         drop_suffix (dispatcher): removes a str suffix from an item.
-    Other: 
+    Other:
         capitalify: converts a snake case str to capital case.
         snakify: converts a capital case str to snake case.
         uniquify: returns a unique key for a dict.
@@ -34,27 +34,27 @@ To Do:
 """
 from __future__ import annotations
 
-from collections.abc import Hashable, Mapping, MutableSequence, Sequence, Set
 import dataclasses
 import functools
 import re
-from typing import Any, Optional, Type
-
+from collections.abc import Hashable, Mapping, MutableSequence
+from collections.abc import Set as AbstractSet
+from typing import Any
 
 """ Adders """
 
 @functools.singledispatch
 def add_prefix(
-    item: Any, /, 
-    prefix: str, 
-    divider: Optional[str] = '',
-    recursive: Optional[bool] = False) -> Any:
+    item: Any, /,
+    prefix: str,
+    divider: str | None = '',
+    recursive: bool | None = False) -> Any:
     """Adds 'prefix' to 'item' with 'divider' in between.
-    
+
     Args:
         item (Any): item to be modified.
         prefix (str): prefix to be added to 'item'.
-        divider (Optional[str]): str to add between 'item' and 'prefix'. 
+        divider (Optional[str]): str to add between 'item' and 'prefix'.
             Defaults to '', which means no divider will be added.
         recursive (Optional[bool]: False): if 'item' is nested, whether to apply
             the function to all nested objects as well (True) or merely the top
@@ -65,18 +65,18 @@ def add_prefix(
 
     Raises:
         TypeError: if no registered function supports the type of 'item'.
-        
+
     """
     raise TypeError(f'item is not a supported type for {__name__}')
- 
+
 @add_prefix.register(str)
 def add_prefix_to_str(
     item: str,
-    prefix: str, 
-    divider: Optional[str] = '',
-    recursive: Optional[bool] = False) -> str:
+    prefix: str,
+    divider: str | None = '',
+    recursive: bool | None = False) -> str:
     """Adds 'prefix' to 'item' with 'divider' in between.
-    
+
     Args:
         item (str): item to be modified.
         prefix (str): prefix to be added to 'item'.
@@ -86,21 +86,21 @@ def add_prefix_to_str(
             the function to all nested objects as well (True) or merely the top
             level object (False). Defaults to False. This argument has no effect
             if 'item' is a str type.
-            
+
     Returns:
         str: modified str.
 
     """
     return divider.join([prefix, item])
- 
+
 @add_prefix.register(Mapping)
 def add_prefix_to_dict(
     item: Mapping[str, Any], /,
-    prefix: str, 
-    divider: Optional[str] = '',
-    recursive: Optional[bool] = False) -> Mapping[str, Any]:
+    prefix: str,
+    divider: str | None = '',
+    recursive: bool | None = False) -> Mapping[str, Any]:
     """Adds 'prefix' to keys in 'item' with 'divider' in between.
-    
+
     Args:
         item (Mapping[str, Any]): item to be modified.
         prefix (str): prefix to be added to 'item'.
@@ -109,27 +109,24 @@ def add_prefix_to_dict(
         recursive (Optional[bool]: False): if 'item' is nested, whether to apply
             the function to all nested objects as well (True) or merely the top
             level object (False). Defaults to False.
-            
+
     Returns:
         Mapping[str, Any]: modified mapping.
 
     """
     base = type(item)
-    kwargs = dict(prefix = prefix, divider = divider, recursive = recursive)
-    if recursive:
-        tool = add_prefix
-    else:
-        tool = add_prefix_to_str
+    kwargs = {'prefix': prefix, 'divider': divider, 'recursive': recursive}
+    tool = add_prefix if recursive else add_prefix_to_str
     return base({tool(k, **kwargs): v for k, v in item.items()})
- 
+
 @add_prefix.register(MutableSequence)
 def add_prefix_to_list(
-    item: MutableSequence[str], /, 
-    prefix: str, 
+    item: MutableSequence[str], /,
+    prefix: str,
     divider: str = '',
-    recursive: Optional[bool] = False) -> MutableSequence[str]:
+    recursive: bool | None = False) -> MutableSequence[str]:
     """Adds 'prefix' to items in 'item' with 'divider' in between.
-    
+
     Args:
         item (MutableSequence[str]): item to be modified.
         prefix (str): prefix to be added to 'item'.
@@ -138,27 +135,24 @@ def add_prefix_to_list(
         recursive (Optional[bool]: False): if 'item' is nested, whether to apply
             the function to all nested objects as well (True) or merely the top
             level object (False). Defaults to False.
-            
+
     Returns:
         Any: modified mutable sequence.
 
     """
     base = type(item)
-    kwargs = dict(prefix = prefix, divider = divider, recursive = recursive)
-    if recursive:
-        tool = add_prefix
-    else:
-        tool = add_prefix_to_str
+    kwargs = {'prefix': prefix, 'divider': divider, 'recursive': recursive}
+    tool = add_prefix if recursive else add_prefix_to_str
     return base([tool(i, **kwargs) for i in item])
- 
-@add_prefix.register(Set)
+
+@add_prefix.register(AbstractSet)
 def add_prefix_to_set(
-    item: Set[str], /, 
-    prefix: str, 
+    item: AbstractSet[str], /,
+    prefix: str,
     divider: str = '',
-    recursive: Optional[bool] = False) -> Set[str]:
+    recursive: bool | None = False) -> AbstractSet[str]:
     """Adds 'prefix' to items in 'item' with 'divider' in between.
-    
+
     Args:
         item (Set[str]): item to be modified.
         prefix (str): prefix to be added to 'item'.
@@ -167,27 +161,24 @@ def add_prefix_to_set(
         recursive (Optional[bool]: False): if 'item' is nested, whether to apply
             the function to all nested objects as well (True) or merely the top
             level object (False). Defaults to False.
-            
+
     Returns:
         Set[str]: modified set.
 
     """
     base = type(item)
-    kwargs = dict(prefix = prefix, divider = divider, recursive = recursive)
-    if recursive:
-        tool = add_prefix
-    else:
-        tool = add_prefix_to_str
+    kwargs = {'prefix': prefix, 'divider': divider, 'recursive': recursive}
+    tool = add_prefix if recursive else add_prefix_to_str
     return base({tool(i, **kwargs) for i in item})
 
 @add_prefix.register(tuple)
 def add_prefix_to_tuple(
-    item: tuple[str, ...], /, 
-    prefix: str, 
+    item: tuple[str, ...], /,
+    prefix: str,
     divider: str = '',
-    recursive: Optional[bool] = False) -> tuple[str, ...]:
+    recursive: bool | None = False) -> tuple[str, ...]:
     """Adds 'prefix' to items in 'item' with 'divider' in between.
-    
+
     Args:
         item (tuple[str, ...]): item to be modified.
         prefix (str): prefix to be added to 'item'.
@@ -196,32 +187,32 @@ def add_prefix_to_tuple(
         recursive (Optional[bool]: False): if 'item' is nested, whether to apply
             the function to all nested objects as well (True) or merely the top
             level object (False). Defaults to False.
-              
+
     Returns:
         tuple[str, ...]: modified tuple.
 
     Raises:
         TypeError: if no registered function supports the type of 'item'.
-      
+
     """
-    kwargs = dict(prefix = prefix, divider = divider, recursive = recursive)
+    kwargs = {'prefix': prefix, 'divider': divider, 'recursive': recursive}
     return tuple(add_prefix_to_list(item, **kwargs))
 
-def add_slots(item: Type[Any]) -> Type[Any]:
+def add_slots(item: type[Any]) -> type[Any]:
     """Adds slots to dataclass with default values.
-    
-    Derived from code here: 
+
+    Derived from code here:
     https://gitquirks.com/ericvsmith/dataclasses/blob/master/dataclass_tools.py
-    
+
     Args:
         item (Type[Any]): dataclass to add slots to.
 
     Returns:
         Type[Any]: class with '__slots__' added.
-        
+
     Raises:
         TypeError: if '__slots__' is already in item.
-                
+
     """
     if '__slots__' in item.__dict__:
         raise TypeError(f'{item.__name__} already contains __slots__')
@@ -240,16 +231,16 @@ def add_slots(item: Type[Any]) -> Type[Any]:
 
 @functools.singledispatch
 def add_suffix(
-    item: Any, /, 
-    suffix: str, 
-    divider: Optional[str] = '',
-    recursive: Optional[bool] = False) -> Any:
+    item: Any, /,
+    suffix: str,
+    divider: str | None = '',
+    recursive: bool | None = False) -> Any:
     """Adds 'suffix' to 'item' with 'divider' in between.
-    
+
     Args:
         item (Any): item to be modified.
         suffix (str): suffix to be added to 'item'.
-        divider (Optional[str]): str to add between 'item' and 'suffix'. 
+        divider (Optional[str]): str to add between 'item' and 'suffix'.
             Defaults to '', which means no divider will be added.
         recursive (Optional[bool]: False): if 'item' is nested, whether to apply
             the function to all nested objects as well (True) or merely the top
@@ -260,18 +251,18 @@ def add_suffix(
 
     Raises:
         TypeError: if no registered function supports the type of 'item'.
-        
+
     """
     raise TypeError(f'item is not a supported type for {__name__}')
- 
+
 @add_suffix.register(str)
 def add_suffix_to_str(
     item: str,
-    suffix: str, 
-    divider: Optional[str] = '',
-    recursive: Optional[bool] = False) -> str:
+    suffix: str,
+    divider: str | None = '',
+    recursive: bool | None = False) -> str:
     """Adds 'suffix' to 'item' with 'divider' in between.
-    
+
     Args:
         item (str): item to be modified.
         suffix (str): suffix to be added to 'item'.
@@ -281,21 +272,21 @@ def add_suffix_to_str(
             the function to all nested objects as well (True) or merely the top
             level object (False). Defaults to False. This argument has no effect
             if 'item' is a str type.
-            
+
     Returns:
         str: modified str.
 
     """
     return divider.join([item, suffix])
- 
+
 @add_suffix.register(Mapping)
 def add_suffix_to_dict(
     item: Mapping[str, Any], /,
-    suffix: str, 
-    divider: Optional[str] = '',
-    recursive: Optional[bool] = False) -> Mapping[str, Any]:
+    suffix: str,
+    divider: str | None = '',
+    recursive: bool | None = False) -> Mapping[str, Any]:
     """Adds 'suffix' to keys in 'item' with 'divider' in between.
-    
+
     Args:
         item (Mapping[str, Any]): item to be modified.
         suffix (str): suffix to be added to 'item'.
@@ -304,27 +295,24 @@ def add_suffix_to_dict(
         recursive (Optional[bool]: False): if 'item' is nested, whether to apply
             the function to all nested objects as well (True) or merely the top
             level object (False). Defaults to False.
-            
+
     Returns:
         Mapping[str, Any]: modified mapping.
 
     """
     base = type(item)
-    kwargs = dict(suffix = suffix, divider = divider, recursive = recursive)
-    if recursive:
-        tool = add_suffix
-    else:
-        tool = add_suffix_to_str
+    kwargs = {'suffix': suffix, 'divider': divider, 'recursive': recursive}
+    tool = add_suffix if recursive else add_suffix_to_str
     return base({tool(k, **kwargs): v for k, v in item.items()})
- 
+
 @add_suffix.register(MutableSequence)
 def add_suffix_to_list(
-    item: MutableSequence[str], /, 
-    suffix: str, 
+    item: MutableSequence[str], /,
+    suffix: str,
     divider: str = '',
-    recursive: Optional[bool] = False) -> MutableSequence[str]:
+    recursive: bool | None = False) -> MutableSequence[str]:
     """Adds 'suffix' to items in 'item' with 'divider' in between.
-    
+
     Args:
         item (MutableSequence[str]): item to be modified.
         suffix (str): suffix to be added to 'item'.
@@ -333,27 +321,24 @@ def add_suffix_to_list(
         recursive (Optional[bool]: False): if 'item' is nested, whether to apply
             the function to all nested objects as well (True) or merely the top
             level object (False). Defaults to False.
-            
+
     Returns:
         Any: modified mutable sequence.
 
     """
     base = type(item)
-    kwargs = dict(suffix = suffix, divider = divider, recursive = recursive)
-    if recursive:
-        tool = add_suffix
-    else:
-        tool = add_suffix_to_str
+    kwargs = {'suffix': suffix, 'divider': divider, 'recursive': recursive}
+    tool = add_suffix if recursive else add_suffix_to_str
     return base([tool(i, **kwargs) for i in item])
- 
-@add_suffix.register(Set)
+
+@add_suffix.register(AbstractSet)
 def add_suffix_to_set(
-    item: Set[str], /, 
-    suffix: str, 
+    item: AbstractSet[str], /,
+    suffix: str,
     divider: str = '',
-    recursive: Optional[bool] = False) -> Set[str]:
+    recursive: bool | None = False) -> AbstractSet[str]:
     """Adds 'suffix' to items in 'item' with 'divider' in between.
-    
+
     Args:
         item (Set[str]): item to be modified.
         suffix (str): suffix to be added to 'item'.
@@ -362,27 +347,24 @@ def add_suffix_to_set(
         recursive (Optional[bool]: False): if 'item' is nested, whether to apply
             the function to all nested objects as well (True) or merely the top
             level object (False). Defaults to False.
-            
+
     Returns:
         Set[str]: modified set.
 
     """
     base = type(item)
-    kwargs = dict(suffix = suffix, divider = divider, recursive = recursive)
-    if recursive:
-        tool = add_suffix
-    else:
-        tool = add_suffix_to_str
+    kwargs = {'suffix': suffix, 'divider': divider, 'recursive': recursive}
+    tool = add_suffix if recursive else add_suffix_to_str
     return base({tool(i, **kwargs) for i in item})
 
 @add_suffix.register(tuple)
 def add_suffix_to_tuple(
-    item: tuple[str, ...], /, 
-    suffix: str, 
+    item: tuple[str, ...], /,
+    suffix: str,
     divider: str = '',
-    recursive: Optional[bool] = False) -> tuple[str, ...]:
+    recursive: bool | None = False) -> tuple[str, ...]:
     """Adds 'suffix' to items in 'item' with 'divider' in between.
-    
+
     Args:
         item (tuple[str, ...]): item to be modified.
         suffix (str): suffix to be added to 'item'.
@@ -391,22 +373,22 @@ def add_suffix_to_tuple(
         recursive (Optional[bool]: False): if 'item' is nested, whether to apply
             the function to all nested objects as well (True) or merely the top
             level object (False). Defaults to False.
-              
+
     Returns:
         tuple[str, ...]: modified tuple.
 
     Raises:
         TypeError: if no registered function supports the type of 'item'.
-      
+
     """
-    kwargs = dict(suffix = suffix, divider = divider, recursive = recursive)
+    kwargs = {'suffix': suffix, 'divider': divider, 'recursive': recursive}
     return tuple(add_suffix_to_list(item, **kwargs))
 
 """ Dividers """
 
 @functools.singledispatch
 def cleave(
-    item: Any, /, 
+    item: Any, /,
     divider: Any,
     return_last: bool = True,
     raise_error: bool = False) -> tuple[Any, Any]:
@@ -417,22 +399,22 @@ def cleave(
         divider (Any): item to divide 'item' upon.
         return_last (bool): whether to split 'item' upon the first (False) or
             last appearance of 'divider'.
-        raise_error (bool): whether to raise an error if 'divider' is not in 
+        raise_error (bool): whether to raise an error if 'divider' is not in
             'item' or to return a tuple containing 'item' twice.
 
     Raises:
-        TypeError: if no registered function supports the type of 'item'. 
-        
+        TypeError: if no registered function supports the type of 'item'.
+
     Returns:
         tuple[Any, Any]: parts of 'item' on either side of 'divider' unless
             'divider' is not in 'item'.
-        
+
     """
     raise TypeError(f'item is not a supported type for {__name__}')
 
 @cleave.register
 def cleave_str(
-    item: str, /, 
+    item: str, /,
     divider: str = '_',
     return_last: bool = True,
     raise_error: bool = False) -> tuple[str, str]:
@@ -443,16 +425,16 @@ def cleave_str(
         divider (str): item to divide 'item' upon.
         return_last (bool): whether to split 'item' upon the first (False) or
             last appearance of 'divider'.
-        raise_error (bool): whether to raise an error if 'divider' is not in 
+        raise_error (bool): whether to raise an error if 'divider' is not in
             'item' or to return a tuple containing 'item' twice.
 
     Raises:
         ValueError: if 'divider' is not in 'item' and 'raise_error' is True.
-        
+
     Returns:
         tuple[str, str]: parts of 'item' on either side of 'divider' unless
             'divider' is not in 'item'.
-        
+
     """
     if divider in item:
         if return_last:
@@ -468,7 +450,7 @@ def cleave_str(
 
 @functools.singledispatch
 def separate(
-    item: Any, /, 
+    item: Any, /,
     divider: Any,
     raise_error: bool = False) -> tuple[Any, ...]:
     """Divides 'item' into n+1 parts based on 'divider'.
@@ -476,22 +458,22 @@ def separate(
     Args:
         item (Any): item to be divided.
         divider (Any): item to divide 'item' upon.
-        raise_error (bool): whether to raise an error if 'divider' is not in 
+        raise_error (bool): whether to raise an error if 'divider' is not in
             'item' or to return a tuple containing 'item' twice.
 
     Raises:
-        TypeError: if no registered function supports the type of 'item'. 
-        
+        TypeError: if no registered function supports the type of 'item'.
+
     Returns:
         list[Any, ...]: parts of 'item' on either side of 'divider' unless
             'divider' is not in 'item'.
-        
+
     """
     raise TypeError(f'item is not a supported type for {__name__}')
 
 @separate.register
 def separate_str(
-    item: str, /, 
+    item: str, /,
     divider: str = '_',
     raise_error: bool = False) -> list[str]:
     """Divides 'item' into n+1 parts based on 'divider'.
@@ -499,16 +481,16 @@ def separate_str(
     Args:
         item (str): item to be divided.
         divider (str): item to divide 'item' upon.
-        raise_error (bool): whether to raise an error if 'divider' is not in 
+        raise_error (bool): whether to raise an error if 'divider' is not in
             'item' or to return a tuple containing 'item' twice.
 
     Raises:
         ValueError: if 'divider' is not in 'item' and 'raise_error' is True.
-        
+
     Returns:
-        list[str]: parts of 'item' on either side of 'divider' unless 'divider' 
+        list[str]: parts of 'item' on either side of 'divider' unless 'divider'
             is not in 'item'.
-        
+
     """
     if divider in item:
         return item.split(divider)
@@ -516,35 +498,35 @@ def separate_str(
         raise ValueError(f'{divider} is not in {item}')
     else:
         return [item]
- 
+
 """ Subtractors """
 
 @functools.singledispatch
 def deduplicate(item: Any, /) -> Any:
     """Deduplicates contents of 'item.
-    
+
     Args:
         item (Any): item to deduplicate.
 
     Raises:
-        TypeError: if no registered function supports the type of 'item'.     
-        
+        TypeError: if no registered function supports the type of 'item'.
+
     Returns:
         Any: deduplicated item.
-        
+
     """
     raise TypeError(f'item is not a supported type for {__name__}')
 
 @deduplicate.register(MutableSequence)
 def deduplicate_list(item: MutableSequence[Any], /) -> MutableSequence[Any]:
     """Deduplicates contents of 'item.
-    
+
     Args:
         item (MutableSequence[Any]): item to deduplicate.
 
     Returns:
         MutableSequence[Any]: deduplicated item.
-        
+
     """
     base = type(item)
     contents = list(dict.fromkeys(item))
@@ -553,16 +535,16 @@ def deduplicate_list(item: MutableSequence[Any], /) -> MutableSequence[Any]:
 @deduplicate.register(tuple)
 def deduplicate_tuple(item: tuple[Any, ...], /) -> tuple[Any, ...]:
     """Deduplicates contents of 'item.
-    
+
     Args:
         item (tuple[Any, ...]): item to deduplicate.
 
     Returns:
         tuple[Any, ...]: deduplicated item.
-        
+
     """
     return tuple(deduplicate_list(item))
-    
+
 @functools.singledispatch
 def drop_dunders(item: Any, /) -> Any:
     """Drops items in 'item' beginning with a double underscore.
@@ -572,10 +554,10 @@ def drop_dunders(item: Any, /) -> Any:
 
     Returns:
         Any: item with entries dropped beginning with a double underscore.
-        
+
     Raises:
         TypeError: if 'item' is not a registered type.
-        
+
     """
     raise TypeError(f'item is not a supported type for {__name__}')
 
@@ -590,28 +572,28 @@ def drop_dunders_dict(item: Mapping[str, Any], /) -> Mapping[str, Any]:
     Returns:
         Mapping[str, Any]: dict-luke object with entries dropped if the key name
             begin with a double underscore.
-        
+
     """
     base = type(item)
     return base({k: v for k, v in item.items() if not k.startswith('__')})
 
-@drop_dunders.register(MutableSequence)   
+@drop_dunders.register(MutableSequence)
 def drop_dunders_list(
     item: MutableSequence[str | object], /) -> MutableSequence[str | object]:
     """Drops items in 'item' beginning with a double underscore.
 
     Args:
-        item (MutableSequence[str | object]): list-like object with str items or 
+        item (MutableSequence[str | object]): list-like object with str items or
             names that might have double underscores at their beginnings.
 
     Returns:
-        MutableSequence[str | object]: list-like object with items dropped if 
+        MutableSequence[str | object]: list-like object with items dropped if
             they or their names begin with a double underscore.
-            
+
     Raises:
         TypeError: if 'item' does not contain str types or objects with either
             'name' or '__name__' attributes.
-        
+
     """
     base = type(item)
     if len(item) > 0 and all(isinstance(i, str) for i in item):
@@ -626,20 +608,20 @@ def drop_dunders_list(
         raise TypeError(
             'items in item must be str types or have name or __name__ '
             'attributes')
-           
+
 @functools.singledispatch
 def drop_prefix(item: Any, /, prefix: str, divider: str = '') -> Any:
     """Drops 'prefix' from 'item' with 'divider' in between.
-    
+
     Args:
         item (Any): item to be modified.
         prefix (str): prefix to be added to 'item'.
         divider (str): str to add between 'item' and 'prefix'. Defaults to '',
             which means no divider will be added.
-            
+
     Raises:
         TypeError: if no registered function supports the type of 'item'.
-        
+
     Returns:
         Any: modified item.
 
@@ -649,13 +631,13 @@ def drop_prefix(item: Any, /, prefix: str, divider: str = '') -> Any:
 @drop_prefix.register
 def drop_prefix_from_str(item: str, /, prefix: str, divider: str = '') -> str:
     """Drops 'prefix' from 'item' with 'divider' in between.
-    
+
     Args:
         item (str): item to be modified.
         prefix (str): prefix to be added to 'item'.
         divider (str): str to add between 'item' and 'prefix'. Defaults to '',
             which means no divider will be added.
- 
+
     Returns:
         str: modified str.
 
@@ -668,17 +650,17 @@ def drop_prefix_from_str(item: str, /, prefix: str, divider: str = '') -> str:
 
 @drop_prefix.register(Mapping)
 def drop_prefix_from_dict(
-    item: Mapping[str, Any], /, 
-    prefix: str, 
+    item: Mapping[str, Any], /,
+    prefix: str,
     divider: str = '') -> Mapping[str, Any]:
     """Drops 'prefix' from keys in 'item' with 'divider' in between.
-    
+
     Args:
         item (Mapping[str, Any]): item to be modified.
         prefix (str): prefix to be added to 'item'.
         divider (str): str to add between 'item' and 'prefix'. Defaults to '',
             which means no divider will be added.
- 
+
     Returns:
         Mapping[str, Any]: modified mapping.
 
@@ -694,75 +676,75 @@ def drop_prefix_from_dict(
 
 @drop_prefix.register(MutableSequence)
 def drop_prefix_from_list(
-    item: MutableSequence[str], /, 
-    prefix: str, 
+    item: MutableSequence[str], /,
+    prefix: str,
     divider: str = '') -> MutableSequence[str]:
     """Drops 'prefix' from items in 'item' with 'divider' in between.
-    
+
     Args:
         item (MutableSequence[str]): item to be modified.
         prefix (str): prefix to be added to 'item'.
         divider (str): str to add between 'item' and 'prefix'. Defaults to '',
             which means no divider will be added.
- 
+
     Returns:
         MutableSequence[str]: modified sequence.
 
     """
     contents = [
-        drop_prefix(item = i, prefix = prefix, divider = divider) for i in item] 
+        drop_prefix(item = i, prefix = prefix, divider = divider) for i in item]
     if isinstance(item, list):
         return contents
     else:
         vessel = item.__class__
         return vessel(contents)
 
-@drop_prefix.register(Set)
+@drop_prefix.register(AbstractSet)
 def drop_prefix_from_set(
-    item: Set[str], /, 
-    prefix: str, 
-    divider: str = '') -> Set[str]:
+    item: AbstractSet[str], /,
+    prefix: str,
+    divider: str = '') -> AbstractSet[str]:
     """Drops 'prefix' from items in 'item' with 'divider' in between.
-    
+
     Args:
         item (Set[str]): item to be modified.
         prefix (str): prefix to be added to 'item'.
         divider (str): str to add between 'item' and 'prefix'. Defaults to '',
             which means no divider will be added.
- 
+
     Returns:
         Set[str]: modified set.
 
     """
     contents = {
-        drop_prefix(item = i, prefix = prefix, divider = divider) for i in item}   
+        drop_prefix(item = i, prefix = prefix, divider = divider) for i in item}
     if isinstance(item, set):
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents)  
+        return vessel(contents)
 
 @drop_prefix.register(tuple)
 def drop_prefix_from_tuple(
-    item: tuple[str, ...], /, 
-    prefix: str, 
+    item: tuple[str, ...], /,
+    prefix: str,
     divider: str = '') -> tuple[str, ...]:
     """Drops 'prefix' from items in 'item' with 'divider' in between.
-    
+
     Args:
         item (tuple[str, ...]): item to be modified.
         prefix (str): prefix to be added to 'item'.
         divider (str): str to add between 'item' and 'prefix'. Defaults to '',
             which means no divider will be added.
- 
+
     Returns:
         tuple[str, ...]: modified tuple.
 
     """
     return tuple(
-        [drop_prefix(item = i, prefix = prefix, divider = divider) 
-         for i in item])       
-    
+        [drop_prefix(item = i, prefix = prefix, divider = divider)
+         for i in item])
+
 @functools.singledispatch
 def drop_privates(item: Any, /) -> Any:
     """Drops items in 'item' with names beginning with an underscore.
@@ -772,10 +754,10 @@ def drop_privates(item: Any, /) -> Any:
 
     Returns:
         Any: item with entries dropped beginning with an underscore.
-        
+
     Raises:
         TypeError: if 'item' is not a registered type.
-        
+
     """
     raise TypeError(f'item is not a supported type for {__name__}')
 
@@ -790,28 +772,28 @@ def drop_privates_dict(item: Mapping[str, Any], /) -> Mapping[str, Any]:
     Returns:
         Mapping[str, Any]: dict-luke object with entries dropped if the key name
             begin with an underscore.
-        
+
     """
     base = type(item)
     return base({k: v for k, v in item.items() if not k.startswith('_')})
 
-@drop_privates.register(MutableSequence)   
+@drop_privates.register(MutableSequence)
 def drop_privates_list(
     item: MutableSequence[str | object], /) -> MutableSequence[str | object]:
     """Drops items in 'item' with names beginning with an underscore.
 
     Args:
-        item (MutableSequence[str | object]): list-like object with str items or 
+        item (MutableSequence[str | object]): list-like object with str items or
             names that might have underscores at their beginnings.
 
     Returns:
-        MutableSequence[str | object]: list-like object with items dropped if 
+        MutableSequence[str | object]: list-like object with items dropped if
             they or their names begin with an underscore.
-            
+
     Raises:
         TypeError: if 'item' does not contain str types or objects with either
             'name' or '__name__' attributes.
-        
+
     """
     base = type(item)
     if len(item) > 0 and all(isinstance(i, str) for i in item):
@@ -826,18 +808,18 @@ def drop_privates_list(
         raise TypeError(
             'items in item must be str types or have name or __name__ '
             'attributes')
-                   
+
 @functools.singledispatch
 def drop_substring(item: Any, /, substring: str) -> Any:
     """Drops 'substring' from 'item' with a possible 'divider' in between.
-    
+
     Args:
         item (Any): item to be modified.
         substring (str): substring to be added to 'item'.
-            
+
     Raises:
         TypeError: if no registered function supports the type of 'item'.
-        
+
     Returns:
         Any: modified item.
 
@@ -847,7 +829,7 @@ def drop_substring(item: Any, /, substring: str) -> Any:
 @drop_substring.register
 def drop_substring_from_str(item: str, /, substring: str) -> str:
     """Drops 'substring' from 'item'.
-    
+
     Args:
         item (str): item to be modified.
         substring (str): substring to be added to 'item'.
@@ -863,10 +845,10 @@ def drop_substring_from_str(item: str, /, substring: str) -> str:
 
 @drop_substring.register(Mapping)
 def drop_substring_from_dict(
-    item: Mapping[str, Any], /, 
+    item: Mapping[str, Any], /,
     substring: str) -> Mapping[str, Any]:
     """Drops 'substring' from keys in 'item'.
-    
+
     Args:
         item (Mapping[str, Any]): item to be modified.
         substring (str): substring to be added to 'item'.
@@ -886,10 +868,10 @@ def drop_substring_from_dict(
 
 @drop_substring.register(MutableSequence)
 def drop_substring_from_list(
-    item: MutableSequence[str], /, 
+    item: MutableSequence[str], /,
     substring: str) -> MutableSequence[str]:
     """Drops 'substring' from items in 'item'.
-    
+
     Args:
         item (MutableSequence[str]): item to be modified.
         substring (str): substring to be added to 'item'.
@@ -898,17 +880,17 @@ def drop_substring_from_list(
         MutableSequence[str]: modified sequence.
 
     """
-    contents = [drop_substring(item = i, substring = substring) for i in item] 
+    contents = [drop_substring(item = i, substring = substring) for i in item]
     if isinstance(item, list):
         return contents
     else:
         vessel = item.__class__
         return vessel(contents)
 
-@drop_substring.register(Set)
-def drop_substring_from_set(item: Set[str], /, substring: str) -> Set[str]:
+@drop_substring.register(AbstractSet)
+def drop_substring_from_set(item: AbstractSet[str], /, substring: str) -> AbstractSet[str]:
     """Drops 'substring' from items in 'item'.
-    
+
     Args:
         item (Set[str]): item to be modified.
         substring (str): substring to be added to 'item'.
@@ -917,19 +899,19 @@ def drop_substring_from_set(item: Set[str], /, substring: str) -> Set[str]:
         Set[str]: modified set.
 
     """
-    contents = {drop_substring(item = i, substring = substring) for i in item}   
+    contents = {drop_substring(item = i, substring = substring) for i in item}
     if isinstance(item, set):
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents)  
+        return vessel(contents)
 
 @drop_substring.register(tuple)
 def drop_substring_from_tuple(
-    item: tuple[str, ...], /, 
+    item: tuple[str, ...], /,
     substring: str) -> tuple[str, ...]:
     """Drops 'substring' from items in 'item'.
-    
+
     Args:
         item (tuple[str, ...]): item to be modified.
         substring (str): substring to be added to 'item'.
@@ -939,19 +921,19 @@ def drop_substring_from_tuple(
 
     """
     return tuple(
-        [drop_substring(item = i, substring = substring) for i in item])    
-     
+        [drop_substring(item = i, substring = substring) for i in item])
+
 @functools.singledispatch
 def drop_suffix(item: Any, /, suffix: str, divider: str = '') -> Any:
     """Drops 'suffix' from 'item' with 'divider' in between.
-    
+
     Args:
         item (Any): item to be modified.
         suffix (str): suffix to be added to 'item'.
 
     Raises:
         TypeError: if no registered function supports the type of 'item'.
-        
+
     Returns:
         Any: modified item.
 
@@ -961,7 +943,7 @@ def drop_suffix(item: Any, /, suffix: str, divider: str = '') -> Any:
 @drop_suffix.register
 def drop_suffix_from_str(item: str, /, suffix: str, divider: str = '') -> str:
     """Drops 'suffix' from 'item' with 'divider' in between.
-    
+
     Args:
         item (str): item to be modified.
         suffix (str): suffix to be added to 'item'.
@@ -978,11 +960,11 @@ def drop_suffix_from_str(item: str, /, suffix: str, divider: str = '') -> str:
 
 @drop_suffix.register(Mapping)
 def drop_suffix_from_dict(
-    item: Mapping[str, Any], /, 
-    suffix: str, 
+    item: Mapping[str, Any], /,
+    suffix: str,
     divider: str = '') -> Mapping[str, Any]:
     """Drops 'suffix' from keys in 'item' with 'divider' in between.
-    
+
     Args:
         item (Mapping[str, Any]): item to be modified.
         suffix (str): suffix to be added to 'item'.
@@ -992,7 +974,7 @@ def drop_suffix_from_dict(
 
     """
     contents = {
-        drop_suffix(item = k, suffix = suffix, divider = divider): v 
+        drop_suffix(item = k, suffix = suffix, divider = divider): v
         for k, v in item.items()}
     if isinstance(item, dict):
         return contents
@@ -1002,11 +984,11 @@ def drop_suffix_from_dict(
 
 @drop_suffix.register(MutableSequence)
 def drop_suffix_from_list(
-    item: MutableSequence[str], /, 
-    suffix: str, 
+    item: MutableSequence[str], /,
+    suffix: str,
     divider: str = '') -> MutableSequence[str]:
     """Drops 'suffix' from items in 'item' with 'divider' in between.
-    
+
     Args:
         item (MutableSequence[str]): item to be modified.
         suffix (str): suffix to be added to 'item'.
@@ -1023,13 +1005,13 @@ def drop_suffix_from_list(
         vessel = item.__class__
         return vessel(contents)
 
-@drop_suffix.register(Set)
+@drop_suffix.register(AbstractSet)
 def drop_suffix_from_set(
-    item: Set[str], /, 
-    suffix: str, 
-    divider: str = '') -> Set[str]:
+    item: AbstractSet[str], /,
+    suffix: str,
+    divider: str = '') -> AbstractSet[str]:
     """Drops 'suffix' from items in 'item' with 'divider' in between.
-    
+
     Args:
         item (Set[str]): item to be modified.
         suffix (str): suffix to be added to 'item'.
@@ -1039,20 +1021,20 @@ def drop_suffix_from_set(
 
     """
     contents = {
-        drop_suffix(item = i, suffix = suffix, divider = divider) for i in item}      
+        drop_suffix(item = i, suffix = suffix, divider = divider) for i in item}
     if isinstance(item, set):
         return contents
     else:
         vessel = item.__class__
-        return vessel(contents)  
+        return vessel(contents)
 
 @drop_suffix.register(tuple)
 def drop_suffix_from_tuple(
-    item: tuple[str, ...], /, 
-    suffix: str, 
+    item: tuple[str, ...], /,
+    suffix: str,
     divider: str = '') -> tuple[str, ...]:
     """Drops 'suffix' from items in 'item' with 'divider' in between.
-    
+
     Args:
         item (tuple[str, ...]): item to be modified.
         suffix (str): suffix to be added to 'item'.
@@ -1062,8 +1044,8 @@ def drop_suffix_from_tuple(
 
     """
     return tuple(
-        [drop_suffix(item = i, suffix = suffix, divider = divider) 
-         for i in item])        
+        [drop_suffix(item = i, suffix = suffix, divider = divider)
+         for i in item])
 
 """ Other Modifiers """
 
@@ -1093,11 +1075,11 @@ def snakify(item: str) -> str:
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', item).lower()
 
 def uniquify(
-    key: str, 
+    key: str,
     dictionary: Mapping[Hashable, Any],
-    index: Optional[int] = 1) -> str:
+    index: int | None = 1) -> str:
     """Creates a unique key name to avoid overwriting an item in 'dictionary'.
-    
+
     The function is 1-indexed so that the first attempt to avoid a duplicate
     will be: "old_name2".
 
@@ -1108,7 +1090,7 @@ def uniquify(
 
     Returns:
         str: unique key name for 'dictionary'.
-        
+
     """
     if key not in dictionary:
         return key
@@ -1120,5 +1102,5 @@ def uniquify(
                 name = name.removesuffix(str(counter - 1))
             name = ''.join([key, str(counter)])
             if name not in dictionary:
-                return name 
-            
+                return name
+

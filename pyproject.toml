@@ -33,7 +33,7 @@ build-backend = "pdm.backend"
 
 [tool.pdm]
 plugins = [
-    "sync-pre-commit-lock[pdm]", 
+    "sync-pre-commit-lock[pdm]",
     "pdm-multirun"]
 
 [tool.pdm.build]
@@ -91,6 +91,7 @@ ignore = [
     "D406",  # Section name should end with a newline - bugged for 'Attributes:'
     "D407",  # Missing dashed underline after section ("Args")
     "D415",  # First line must end in a period, question mark, or exclamation point
+    "DTZ005",  # The use of `datetime.now()` without `tz` argument is not allowed
     "E501",  # Line too long
     "E731",  # Do not assign a `lambda` expression, use a `def`
     "ERA001",  # Commented out code
@@ -174,5 +175,5 @@ docstring-quotes = "double"
 [tool.ruff.isort]
 case-sensitive = true
 known-first-party = ["camina"]
-# required-imports = ["from __future__ import annotations"]
-# split-on-trailing-comma = false
+required-imports = ["from __future__ import annotations"]
+split-on-trailing-comma = false

@@ -14,20 +14,25 @@
 
 ## What is camina?
 
+*"Truth is truth. How you deal with it is up to you."* - Captain Camina Drummer
+
 This package adds functionality to core Python container classes and provides functions for common tasks.
 
 ## Why use camina?
 
 ## Mappings
+
 * `Dictionary`: drop-in replacement for a python dict with an `add` method for a default mechanism of adding data, a `delete` method for a default mechanism of deleting data, and a `subset` method for returning a subset of the key/value pairs in a new `Dictionary`.
 * `Catalog`: wildcard-accepting dict which is intended for storing different options and strategies. It also returns lists of matches if a list of keys is provided.
 * `Library`: a dictionary that automatically supplies key names for stored items. The 'overwrite' argument determines if a unique key should always be created or whether entries may be overwritten.
 
 ### Sequences
+
 * `Listing`: drop-in replacement for a python list with an `add` method for a default mechanism of adding data, a `delete` method for a default mechanism of deleting data, and a `subset` method for returning a subset of the key/value pairs in a new `Listing`.
 * `Hybrid`: iterable with both dict and list interfaces. Stored items must be hashable or have a `name` attribute.
 
 ### Passthrough
+
 * `Proxy`: transparently wraps an object and directs access methods to access the wrapped object when appropriate (under construction for edge cases).
 
 ### Converters

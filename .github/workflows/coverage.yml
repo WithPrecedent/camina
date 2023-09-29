@@ -9,7 +9,7 @@
 # permissions:
 #     contents: write
 #     pull-requests: write
-  
+
 # jobs:
 
 #   build:
@@ -18,7 +18,7 @@
 
 #     - name: Checkout Repository
 #       uses: actions/checkout@v3
-#       with: 
+#       with:
 #         fetch-depth: 0
 
 #     - name: Set up Python
@@ -44,7 +44,7 @@
 #       uses: tj-actions/coverage-badge-py@v1.8
 #       with:
 #         output: docs/coverage/coverage.svg
-  
+
 #     - name: Verify Changed files
 #       uses: tj-actions/verify-changed-files@v16
 #       id: verify-changed-files
