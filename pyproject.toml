@@ -2,7 +2,7 @@
 
 [project]
 name = "camina"
-description = "Flexible, lightweight functions for converting, modifying, and naming data"
+description = "Flexible, lightweight functions for converting, modifying, and naming"
 authors = [{name = "Corey Rayburn Yung", email = "coreyrayburnyung@gmail.com"}]
 license = {text = "Apache Software License 2.0"}
 readme = "README.md"
@@ -23,7 +23,6 @@ dependencies = []
 
 [project.optional-dependencies]
 
-
 [project.urls]
 Documentation = "https://WithPrecedent.github.io/camina"
 Repository = "https://github.com/WithPrecedent/camina"
@@ -34,7 +33,6 @@ Changelog = "https://WithPrecedent.github.io/camina/changelog"
 [dependency-groups]
 dev = [
     "uv",
-
     "markdown-callouts",
     "markdown-exec",
     "mkdocs",
@@ -64,7 +62,6 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/camina"]
 
-
 [tool.coverage.report]
 skip_empty = true
 show_missing = true
@@ -79,8 +76,6 @@ tests = ["tests", "*/tests"]
 branch = true
 source = ["camina", "tests"]
 
-
-
 [tool.mypy]
 files = ['src']
 disallow_untyped_defs = true
@@ -90,7 +85,6 @@ check_untyped_defs = true
 warn_return_any = true
 warn_unused_ignores = true
 show_error_codes = true
-
 
 [tool.pydoclint]
 # Docstrings document the exceptions that a function can raise, even when they
