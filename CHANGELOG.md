@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 <!-- insertion marker -->
 
+## 0.2.1
+
+### Changed
+
+* README examples are easier to read: one call per line, grouped by task, and without `>>>` prompts.
+
 ## 0.2.0
 
 ### Added

@@ -104,83 +104,125 @@ pip install camina
 
 ### Usage
 
-The examples below are run as part of the test suite, so they are always up to date.
+The examples below are run as part of the test suite, so they are always up to date. A comment that starts with `# ->` shows the value a line returns.
 
 #### Converters
 
-```pycon
->>> import camina
->>> import dataclasses
->>> @dataclasses.dataclass
-... class Settings:
-...     name: str = "default"
->>> camina.listify("a"), camina.listify(("a", "b")), camina.listify(None)
-(['a'], ['a', 'b'], [])
->>> camina.tuplify("ab"), camina.tuplify(["a", "b"])
-(('ab',), ('a', 'b'))
->>> camina.numify("3"), camina.numify("3.5"), camina.numify("three")
-(3, 3.5, 'three')
->>> camina.typify("yes"), camina.typify("1, 2.5, no")
-(True, [1, 2.5, False])
->>> camina.stringify(["a", "b"])
-'a, b'
->>> camina.pathlibify("docs/index.md").name
-'index.md'
->>> camina.namify(Settings), camina.namify(Settings("x")), camina.namify("y")
-('settings', 'x', 'y')
->>> list(camina.windowify([1, 2, 3, 4], length=3))
-[(1, 2, 3), (2, 3, 4)]
->>> camina.instancify(Settings, name="new")
-Settings(name='new')
->>> camina.kwargify(Settings, ("positional",))
-{'name': 'positional'}
->>> camina.convert.to_list("[1, 2]")
-[1, 2]
+Wrap "one item or many" arguments so your functions handle both:
+
+```python
+import camina
+
+camina.listify("a")  # -> ['a']
+camina.listify(("a", "b"))  # -> ['a', 'b']
+camina.listify(None)  # -> []
+camina.tuplify(["a", "b"])  # -> ('a', 'b')
+```
+
+Convert strings to numbers, booleans, and paths:
+
+```python
+camina.numify("3")  # -> 3
+camina.numify("3.5")  # -> 3.5
+# Cannot be converted, so it is returned unchanged.
+camina.numify("three")  # -> 'three'  # Not convertible, so returned unchanged.
+camina.typify("yes")  # -> True
+camina.typify("1, 2.5, no")  # -> [1, 2.5, False]
+camina.stringify(["a", "b"])  # -> 'a, b'
+camina.pathlibify("docs/index.md").name  # -> 'index.md'
+camina.convert.to_list("[1, 2]")  # -> [1, 2]
+```
+
+Slide a window over an iterable:
+
+```python
+list(camina.windowify([1, 2, 3, 4], length=3))  # -> [(1, 2, 3), (2, 3, 4)]
+```
+
+Work with classes and instances. The examples below use this dataclass:
+
+```python
+import dataclasses
+
+
+@dataclasses.dataclass
+class Settings:
+    name: str = "default"
+```
+
+```python
+# From a class.
+camina.namify(Settings)  # -> 'settings'
+# From an instance's `name` attribute.
+camina.namify(Settings("x"))  # -> 'x'
+camina.namify("y")  # -> 'y'
+camina.instancify(Settings, name="new")  # -> Settings(name='new')
+camina.kwargify(Settings, ("positional",))  # -> {'name': 'positional'}
 ```
 
 #### Modifiers
 
-```pycon
->>> camina.add_prefix(["a", "b"], "pre", divider="_")
-['pre_a', 'pre_b']
->>> camina.add_suffix({"a": 1}, "post", divider="_")
-{'a_post': 1}
->>> camina.drop_prefix(["pre_a", "pre_b"], "pre", divider="_")
-['a', 'b']
->>> camina.drop_suffix("name_post", "post", divider="_")
-'name'
->>> camina.drop_substring(("abc", "cba"), "b")
-('ac', 'ca')
->>> camina.drop_privates(["_hidden", "shown", "__dunder__"])
-['shown']
->>> camina.drop_dunders(["_hidden", "shown", "__dunder__"])
-['_hidden', 'shown']
->>> camina.cleave("a_b_c"), camina.cleave("a_b_c", return_last=False)
-(('a_b', 'c'), ('a', 'b_c'))
->>> camina.separate("a_b_c")
-['a', 'b', 'c']
->>> camina.deduplicate([1, 2, 1, 3, 2])
-[1, 2, 3]
->>> camina.snakify("HTTPServerError"), camina.capitalify("http_server_error")
-('http_server_error', 'HttpServerError')
->>> camina.uniquify("name", {"name": 1, "name2": 2})
-'name3'
->>> Slotted = camina.add_slots(Settings)
->>> Slotted.__slots__
-('name',)
+Modifiers work on strings, lists, tuples, sets, and dicts, and return the same type they were given.
+
+Add and remove prefixes, suffixes, and substrings:
+
+```python
+camina.add_prefix(["a", "b"], "pre", divider="_")  # -> ['pre_a', 'pre_b']
+camina.add_suffix({"a": 1}, "post", divider="_")  # -> {'a_post': 1}
+camina.drop_prefix(["pre_a", "pre_b"], "pre", divider="_")  # -> ['a', 'b']
+camina.drop_suffix("name_post", "post", divider="_")  # -> 'name'
+camina.drop_substring(("abc", "cba"), "b")  # -> ('ac', 'ca')
+```
+
+Filter out private and dunder names:
+
+```python
+names = ["_hidden", "shown", "__dunder__"]
+camina.drop_privates(names)  # -> ['shown']
+camina.drop_dunders(names)  # -> ['_hidden', 'shown']
+```
+
+Split strings and remove duplicates:
+
+```python
+# Split at the last divider.
+camina.cleave("a_b_c")  # -> ('a_b', 'c')
+# Split at the first divider.
+camina.cleave("a_b_c", return_last=False)  # -> ('a', 'b_c')
+camina.separate("a_b_c")  # -> ['a', 'b', 'c']
+camina.deduplicate([1, 2, 1, 3, 2])  # -> [1, 2, 3]
+```
+
+Change naming styles and make unique keys:
+
+```python
+camina.snakify("HTTPServerError")  # -> 'http_server_error'
+camina.capitalify("http_server_error")  # -> 'HttpServerError'
+camina.uniquify("name", {"name": 1, "name2": 2})  # -> 'name3'
+```
+
+Add `__slots__` to a dataclass:
+
+```python
+Slotted = camina.add_slots(Settings)
+Slotted.__slots__  # -> ('name',)
 ```
 
 #### Clock
 
-```pycon
->>> camina.how_soon_is_now(prefix="run_")  # doctest: +ELLIPSIS
-'run_...'
->>> @camina.timer
-... def work():
-...     return "done"
->>> work()
-work completed in 0:00:00
-'done'
+Create a timestamped name and time a function:
+
+```python
+camina.how_soon_is_now(prefix="run_")  # -> 'run_...'
+
+
+@camina.timer
+def work():
+    return "done"
+
+
+# Prints "work completed in 0:00:00" and returns the result.
+work()  # -> 'done'
 ```
 
 ## Contributing
