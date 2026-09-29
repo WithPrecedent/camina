@@ -3,7 +3,7 @@
 # Project Information
 
 site_name: camina
-site_description:
+site_description: Flexible, lightweight, extensible, easy-to-use data structures and types
 site_url: https://WithPrecedent.github.io/camina
 repo_name: WithPrecedent/camina
 repo_url: https://github.com/WithPrecedent/camina
@@ -13,7 +13,7 @@ watch: [
   CONTRIBUTING.md,
   CHANGELOG.md,
   src/camina]
-copyright: Copyright, 2023 Corey Rayburn Yung
+copyright: Copyright, 2026 Corey Rayburn Yung
 docs_dir: docs
 
 # Documentation Structure
@@ -22,7 +22,6 @@ nav:
 - Home:
   - Overview: index.md
   - Changelog: changelog.md
-  - Credits: credits.md
   - License: license.md
 - User Guide:
   - Tutorial: tutorial.md
@@ -94,8 +93,8 @@ markdown_extensions:
 - md_in_html
 - pymdownx.details
 - pymdownx.emoji:
-    emoji_index: !!python/name:materialx.emoji.twemoji
-    emoji_generator: !!python/name:materialx.emoji.to_svg
+    emoji_index: !!python/name:material.extensions.emoji.twemoji
+    emoji_generator: !!python/name:material.extensions.emoji.to_svg
 - pymdownx.highlight:
     anchor_linenums: true
     line_spans: __span
@@ -135,8 +134,6 @@ plugins:
 - mkdocstrings:
     handlers:
       python:
-        import:
-        - https://docs.python.org/3/objects.inv
         options:
           docstring_section_style: table
           filters:
@@ -146,6 +143,7 @@ plugins:
           merge_init_into_class: true
           separate_signature: false
           show_signature_annotations: false
+        paths: [src]
 - search:
 
 extra:

@@ -1,120 +1,187 @@
-"""Functions that convert types
+"""Functions that convert types.
 
 Contents:
-    dictify: converts to or validates a dict.
-    hashify: converts to or validates a hashable object.
-    instancify: converts to or validates an instance. If it is already an
-        instance, any passed kwargs are added as attributes to the instance.
-    integerify: converts to or validates an int.
-    iterify: converts to or validates an iterable.
-    kwargify: uses annotations to turn positional arguments into keyword
-        arguments.
-    listify: converts to or validates a list.
-    namify: returns hashable name for passed item.
-    numify: converts to or validates a numerical type.
-    pathlibify: converts to or validates a pathlib.Path.
-    stringify: converts to or validates a str.
-    tuplify: converts to or validates a tuple.
-    typify: converts a str type to other common types, if possible.
-    windowify: Returns a sliding window of `length` over `item`.
-    to_dict:
-    to_index
-    str_to_index
-    to_int
-    str_to_int
-    float_to_int
-    to_list
-    str_to_list
-    to_float
-    int_to_float
-    str_to_float
-    to_path
-    str_to_path
-    to_str
-    int_to_str
-    float_to_str
-    list_to_str
-    none_to_str
-    path_to_str
-    datetime_to_str
+    General Converters:
+        dictify (dispatcher): converts to or validates a dict.
+        hashify (dispatcher): converts to or validates a hashable object.
+        instancify: converts to or validates an instance. If it is already an
+            instance, any passed kwargs are added as attributes to the
+            instance.
+        integerify (dispatcher): converts to or validates an int.
+        iterify: converts to or validates an iterable.
+        kwargify: uses annotations to turn positional arguments into keyword
+            arguments.
+        listify (dispatcher): converts to or validates a list.
+        numify (dispatcher): converts to or validates a numerical type.
+        pathlibify (dispatcher): converts to or validates a pathlib.Path.
+        stringify (dispatcher): converts to or validates a str.
+        tuplify (dispatcher): converts to or validates a tuple.
+        typify: converts a str type to other common types, if possible.
+        windowify: returns a sliding window of `length` over `item`.
+    Specific Converters:
+        to_dict (dispatcher): converts an item to a dict.
+        to_index (dispatcher): converts an item to an int usable as an index.
+        str_to_index
+        to_int (dispatcher): converts an item to an int.
+        str_to_int
+        float_to_int
+        to_list (dispatcher): converts an item to a list.
+        str_to_list
+        to_float (dispatcher): converts an item to a float.
+        int_to_float
+        str_to_float
+        to_path (dispatcher): converts an item to a pathlib.Path.
+        str_to_path
+        to_str (dispatcher): converts an item to a str.
+        int_to_str
+        float_to_str
+        list_to_str
+        none_to_str
+        path_to_str
+        datetime_to_str
+
+The `namify` function, which returns a str name for an item, is in
+`camina.label` and is exported in the top-level `camina` namespace.
+
+Each dispatcher is a `functools.singledispatch` function. The functions that
+handle specific types are registered with their dispatcher and can also be
+called directly.
 
 To Do:
     Add more flexible tools.
 
 """
+
 from __future__ import annotations
 
 import ast
 import collections
+import dataclasses
+import datetime
 import functools
 import inspect
 import itertools
+import operator
 import pathlib
 from collections.abc import (
     Hashable,
     Iterable,
+    Iterator,
+    Mapping,
     MutableMapping,
     MutableSequence,
     Sequence,
 )
-from typing import TYPE_CHECKING, Any
+from collections.abc import Set as AbstractSet
+from typing import Any, cast
 
-from . import modify
+_NULL_STRINGS: tuple[str, ...] = ("None", "none")
+_UNSUPPORTED: str = (
+    "item cannot be converted because it is an unsupported type: {name}"
+)
 
-if TYPE_CHECKING:
-    import datetime
+
+""" Private Helpers """
+
+
+def _is_collection(item: Any) -> bool:
+    """Returns whether `item` is an iterable that should be converted.
+
+    Strings, bytes, and mappings are treated as single items and not as
+    collections of items.
+
+    Args:
+        item (Any): item to check.
+
+    Returns:
+        bool: whether `item` is a non-str, non-bytes, non-mapping iterable.
+
+    """
+    return isinstance(item, Iterable) and not isinstance(
+        item, (str, bytes, bytearray, Mapping)
+    )
+
+
+def _null_default(default: Any, empty: Any) -> Any:
+    """Returns the value to use in place of a `None` item.
+
+    Args:
+        default (Any): default argument passed to a converter. None means that
+            `empty` should be returned and the strings "None" or "none" mean
+            that None should be returned.
+        empty (Any): value to return if `default` is None.
+
+    Returns:
+        Any: value to return for a `None` item.
+
+    """
+    if default is None:
+        return empty
+    if isinstance(default, str) and default in _NULL_STRINGS:
+        return None
+    return default
 
 
 """ General Converters """
+
 
 @functools.singledispatch
 def dictify(item: Any, /) -> MutableMapping[Hashable, Any]:
     """Converts `item` to a MutableMapping.
 
+    Mutable mappings are returned as is. Other mappings and iterables of
+    key/value pairs are converted to a dict.
+
     Args:
-        item: item to convert to a MutableMapping.
+        item (Any): item to convert to a MutableMapping.
 
     Raises:
-        TypeError: if `item` is a type that is not registered.
+        TypeError: if `item` cannot be converted.
 
     Returns:
-        MutableMapping: derived from `item`.
+        MutableMapping[Hashable, Any]: derived from `item`.
 
     """
     if isinstance(item, MutableMapping):
         return item
-    else:
-        raise TypeError(
-        f'item cannot be converted because it is an unsupported type: '
-        f'{type(item).__name__}')
+    if isinstance(item, Mapping):
+        return dict(item)
+    if _is_collection(item):
+        try:
+            return dict(item)
+        except (TypeError, ValueError):
+            pass
+    raise TypeError(_UNSUPPORTED.format(name=type(item).__name__))
+
 
 @functools.singledispatch
 def hashify(item: Any, /) -> Hashable:
     """Converts `item` to a Hashable.
 
+    If `item` is hashable, it is returned as is. Otherwise, mappings, sets,
+    and other collections are converted to hashable equivalents (tuples of
+    items or frozensets) and any remaining unhashable objects are converted to
+    a str.
+
     Args:
         item (Any): item to convert to a Hashable.
 
-    Raises:
-        TypeError: if `item` is a type that is not registered.
-
     Returns:
-        Hashable: derived from 'item'.
+        Hashable: derived from `item`.
 
     """
-    if isinstance(item, Hashable):
-        return item
-    else:
-        try:
-            return hash(item)
-        except TypeError:
-            try:
-                return str(item)
-            except TypeError:
-                try:
-                    return modify.snakify(item.__name__)
-                except AttributeError:
-                    return modify.snakify(item.__class__.__name__)
+    try:
+        hash(item)
+    except TypeError:
+        if isinstance(item, Mapping):
+            return tuple((hashify(k), hashify(v)) for k, v in item.items())
+        if isinstance(item, AbstractSet):
+            return frozenset(hashify(i) for i in item)
+        if _is_collection(item):
+            return tuple(hashify(i) for i in item)
+        return str(item)
+    return cast("Hashable", item)
+
 
 def instancify(item: type[Any] | object, **kwargs: Any) -> Any:
     """Returns `item` as an instance with `kwargs` as parameters/attributes.
@@ -124,25 +191,22 @@ def instancify(item: type[Any] | object, **kwargs: Any) -> Any:
     name.
 
     Args:
-        item (Type[Any] | object)): class to make an instance out of by
-            passing kwargs or an instance to add kwargs to as attributes.
-
-    Raises:
-        TypeError: if `item` is neither a class nor instance.
+        item (type[Any] | object): class to make an instance out of by passing
+            kwargs or an instance to add kwargs to as attributes.
+        **kwargs (Any): keyword arguments to pass to `item` if it is a class or
+            to add as attributes if it is an instance.
 
     Returns:
-        object: a class instance with `kwargs` as attributes or passed as
+        Any: a class instance with `kwargs` as attributes or passed as
             parameters (if `item` is a class).
 
     """
     if inspect.isclass(item):
         return item(**kwargs)
-    elif isinstance(item, object):
-        for key, value in kwargs.items():
-            setattr(item, key, value)
-        return item
-    else:
-        raise TypeError('item must be a class or class instance')
+    for key, value in kwargs.items():
+        setattr(item, key, value)
+    return item
+
 
 @functools.singledispatch
 def integerify(item: Any, /) -> int:
@@ -160,52 +224,60 @@ def integerify(item: Any, /) -> int:
     """
     if isinstance(item, int):
         return item
-    else:
-        raise TypeError(
-            f'item cannot be converted because it is an '
-            f'unsupported type: {type(item).__name__}')
+    raise TypeError(_UNSUPPORTED.format(name=type(item).__name__))
 
-@functools.singledispatch
-def iterify(item: Any, /) -> Iterable:
+
+def iterify(item: Any, /) -> Iterable[Any]:
     """Returns `item` as an iterable, but does not iterate str types.
 
     Args:
-        item (Any): item to turn into an iterable
+        item (Any): item to turn into an iterable.
 
     Returns:
-        Iterable: of `item`. A str type will be stored as a single item in an
-            Iterable wrapper.
+        Iterable[Any]: `item` if it is an iterable other than a str or bytes. A
+            str or bytes type is stored as a single item in a tuple, a non-
+            iterable is stored as a single item in a tuple, and None becomes an
+            empty tuple.
 
     """
     if item is None:
-        return iter(())
-    elif isinstance(item, (str, bytes)):
-        return iter([item])
-    else:
-        try:
-            return iter(item)
-        except TypeError:
-            return iter((item,))
+        return ()
+    if isinstance(item, (str, bytes, bytearray)):
+        return (item,)
+    if isinstance(item, Iterable):
+        return item
+    return (item,)
 
-def kwargify(item: type[Any], /, args: tuple[Any]) -> dict[Hashable, Any]:
-    """Converts args to kwargs.
+
+def kwargify(item: type[Any], /, args: tuple[Any, ...]) -> dict[str, Any]:
+    """Converts `args` to kwargs using the annotations of `item`.
+
+    For dataclasses, the names of the fields that are arguments to `__init__`
+    are used. For other classes, the annotations of the class and its parents
+    are used.
 
     Args:
-    item (Type): the item with annotations used to construct kwargs.
-        args (tuple): arguments without keywords passed to `item`.
+        item (type[Any]): class with annotations used to construct kwargs.
+        args (tuple[Any, ...]): arguments without keywords passed to `item`.
 
     Raises:
         ValueError: if there are more args than annotations in `item`.
 
     Returns:
-        dict[Hashable, Any]: kwargs based on `args` and `item`.
+        dict[str, Any]: kwargs based on `args` and `item`.
 
     """
-    annotations = list(item.__annotations__.keys())
-    if len(args) > len(annotations):
-        raise ValueError('There are too many args for item')
+    if dataclasses.is_dataclass(item):
+        names = [f.name for f in dataclasses.fields(item) if f.init]
     else:
-        return dict(zip(annotations, args))
+        annotations: dict[str, Any] = {}
+        for base in reversed(inspect.getmro(item)):
+            annotations.update(inspect.get_annotations(base))
+        names = list(annotations)
+    if len(args) > len(names):
+        raise ValueError("There are too many args for item")
+    return dict(zip(names, args, strict=False))
+
 
 @functools.singledispatch
 def listify(item: Any, /, default: Any | None = None) -> Any:
@@ -213,11 +285,12 @@ def listify(item: Any, /, default: Any | None = None) -> Any:
 
     Args:
         item (Any): item to be transformed into a list to allow proper
-            iteration.
-        default (Optional[Any]): the default value to return if `item` is None.
+            iteration. Non-str iterables (other than mappings) are converted to
+            a list. All other items are wrapped in a list.
+        default (Any | None): the default value to return if `item` is None.
             Unfortunately, to indicate you want None to be the default value,
-            you need to put `None` in quotes. If not passed, `default` is set to
-            [].
+            you need to put `"None"` in quotes. If not passed, `default` is set
+            to [].
 
     Returns:
         Any: a passed list, `item` converted to a list, or the `default`
@@ -225,26 +298,25 @@ def listify(item: Any, /, default: Any | None = None) -> Any:
 
     """
     if item is None:
-        if default is None:
-            return []
-        elif default in ['None', 'none']:
-            return None
-        else:
-            return default
-    elif isinstance(item, MutableSequence) and not isinstance(item, str):
+        return _null_default(default, [])
+    if isinstance(item, MutableSequence) and not isinstance(
+        item, (str, bytearray)
+    ):
         return item
-    else:
-        return [item]
+    if _is_collection(item):
+        return list(item)
+    return [item]
+
 
 @functools.singledispatch
 def numify(item: Any, raise_error: bool = False) -> int | float | Any:
     """Converts `item` to a numeric type.
 
     If `item` cannot be converted to a numeric type and `raise_error` is False,
-        `item` is returned as is.
+    `item` is returned as is.
 
     Args:
-        item (str): item to be converted.
+        item (Any): item to be converted.
         raise_error (bool): whether to raise a TypeError when conversion to a
             numeric type fails (True) or to simply return `item` (False).
             Defaults to False.
@@ -257,39 +329,40 @@ def numify(item: Any, raise_error: bool = False) -> int | float | Any:
         int | float | Any: converted to numeric type, if possible.
 
     """
+    if isinstance(item, (int, float)):
+        return item
     try:
         return int(item)
-    except ValueError:
+    except (TypeError, ValueError):
         try:
             return float(item)
-        except ValueError:
+        except (TypeError, ValueError):
             if raise_error:
                 raise TypeError(
-                    f'{item} not able to be converted to a numeric type')
-            else:
-                return item
+                    f"{item} not able to be converted to a numeric type"
+                ) from None
+            return item
+
 
 @functools.singledispatch
 def pathlibify(item: str | pathlib.Path, /) -> pathlib.Path:
-    """Converts string `path` to pathlib.Path object.
+    """Converts string `item` to pathlib.Path object.
 
     Args:
         item (str | pathlib.Path): either a string summary of a path or a
             pathlib.Path object.
 
     Raises:
-        TypeError if `path` is neither a str or pathlib.Path type.
+        TypeError: if `item` is neither a str nor pathlib.Path type.
 
     Returns:
-        pathlib.Path object.
+        pathlib.Path: `item` as a pathlib.Path.
 
     """
-    if isinstance(item, str):
-        return pathlib.Path(item)
-    elif isinstance(item, pathlib.Path):
+    if isinstance(item, pathlib.Path):
         return item
-    else:
-        raise TypeError('item must be str or pathlib.Path type')
+    raise TypeError("item must be str or pathlib.Path type")
+
 
 @functools.singledispatch
 def stringify(item: Any, /, default: Any | None = None) -> Any:
@@ -297,64 +370,55 @@ def stringify(item: Any, /, default: Any | None = None) -> Any:
 
     Args:
         item (Any): item to convert to a str from a list if it is a list.
-        default (Any): value to return if `item` is equivalent to a null
-            value when passed. Defaults to None.
+        default (Any | None): value to return if `item` is None. To indicate you
+            want None to be returned, use `"None"` in quotes. If not passed,
+            `default` is set to "".
 
     Raises:
         TypeError: if `item` is not a str or list-like object.
 
     Returns:
-        Any: str, if item was a list, None or the default value if a null value
-            was passed, or the item as it was passed if there previous two
-            conditions don't appply.
+        Any: str, if item was a sequence, the default value if None was passed,
+            or the item as it was passed if it was already a str.
 
     """
     if item is None:
-        if default is None:
-            return ''
-        elif default in ['None', 'none']:
-            return None
-        else:
-            return default
-    elif isinstance(item, str):
+        return _null_default(default, "")
+    if isinstance(item, str):
         return item
-    elif isinstance(item, Sequence):
-        return ', '.join(item)
-    else:
-        raise TypeError('item must be str or a sequence')
+    if isinstance(item, Sequence) and not isinstance(item, (bytes, bytearray)):
+        return ", ".join(str(i) for i in item)
+    raise TypeError("item must be str or a sequence")
+
 
 @functools.singledispatch
 def tuplify(item: Any, /, default: Any | None = None) -> Any:
     """Returns passed item as a tuple (if not already a tuple).
 
     Args:
-        item (Any): item to be transformed into a tuple.
-        default (Any): the default value to return if `item` is None.
+        item (Any): item to be transformed into a tuple. Non-str iterables
+            (other than mappings) are converted to a tuple. All other items are
+            wrapped in a tuple.
+        default (Any | None): the default value to return if `item` is None.
             Unfortunately, to indicate you want None to be the default value,
-            you need to put `None` in quotes. If not passed, `default`
-            is set to ().
+            you need to put `"None"` in quotes. If not passed, `default` is set
+            to ().
 
     Returns:
-        tuple[Any]: a passed tuple, `item` converted to a tuple, or
-            `default`.
+        Any: a passed tuple, `item` converted to a tuple, or `default`.
 
     """
     if item is None:
-        if default is None:
-            return ()
-        elif default in ['None', 'none']:
-            return None
-        else:
-            return default
-    elif isinstance(item, tuple):
+        return _null_default(default, ())
+    if isinstance(item, tuple):
         return item
-    elif isinstance(item, Iterable):
+    if _is_collection(item):
         return tuple(item)
-    else:
-        return (item,)
+    return (item,)
 
-def typify(item: str) -> Sequence[Any] | int | float | bool | str:
-    """Converts stings to appropriate, supported datatypes.
+
+def typify(item: Any) -> Any:
+    """Converts strings to appropriate, supported datatypes.
 
     The method converts strings to list (if ', ' is present), int, float,
     or bool datatypes based upon the content of the string. If no
@@ -362,80 +426,90 @@ def typify(item: str) -> Sequence[Any] | int | float | bool | str:
     form.
 
     Args:
-        item (str): string to be converted to appropriate datatype.
+        item (Any): string to be converted to appropriate datatype. Other types
+            are returned as is.
 
     Returns:
-        Sequence[Any] | int | float | bool | str: converted item.
+        Any: converted item.
 
     """
     if not isinstance(item, str):
         return item
-    else:
+    try:
+        return int(item)
+    except ValueError:
         try:
-            return int(item)
+            return float(item)
         except ValueError:
-            try:
-                return float(item)
-            except ValueError:
-                if item.lower() in ['true', 'yes']:
-                    return True
-                elif item.lower() in ['false', 'no']:
-                    return False
-                elif ', ' in item:
-                    item = item.split(', ')
-                    return [typify(i) for i in item]
-                else:
-                    return item
+            if item.lower() in ("true", "yes"):
+                return True
+            if item.lower() in ("false", "no"):
+                return False
+            if ", " in item:
+                return [typify(i) for i in item.split(", ")]
+            return item
+
 
 def windowify(
-    item: Sequence[Any],
+    item: Iterable[Any],
     length: int,
     fill_value: Any | None = None,
-    step: int | None = 1) -> Sequence[Any]:
+    step: int = 1,
+) -> Iterator[tuple[Any, ...]]:
     """Returns a sliding window of `length` over `item`.
 
     This code is adapted from more_itertools.windowed to remove a dependency.
 
     Args:
-        item (Sequence[Any]): sequence from which to return windows.
+        item (Iterable[Any]): iterable from which to return windows.
         length (int): length of window.
-        fill_value (Optional[Any]): value to use for items in a window that do
-            not exist when length > len(item). Defaults to None.
-        step (Optional[Any]): number of items to advance between each window.
-            Defaults to 1.
+        fill_value (Any | None): value to use for items in a window that do not
+            exist when length > len(item). Defaults to None.
+        step (int): number of items to advance between each window. Defaults to
+            1.
 
     Raises:
-        ValueError: if `length` is less than 0 or step is less than 1.
+        ValueError: if `length` is less than 0 or `step` is less than 1.
 
     Returns:
-        Sequence[Any]: windowed sequence derived from arguments.
+        Iterator[tuple[Any, ...]]: windowed iterator derived from arguments.
 
     """
     if length < 0:
-        raise ValueError('length must be >= 0')
+        raise ValueError("length must be >= 0")
+    if length > 0 and step < 1:
+        raise ValueError("step must be >= 1")
+    return _windows(item, length, fill_value, step)
+
+
+def _windows(
+    item: Iterable[Any], length: int, fill_value: Any, step: int
+) -> Iterator[tuple[Any, ...]]:
+    """Yields the windows for `windowify` after its arguments are validated."""
     if length == 0:
         yield ()
         return
-    if step < 1:
-        raise ValueError('step must be >= 1')
-    window = collections.deque(maxlen = length)
-    i = length
+    window: collections.deque[Any] = collections.deque(maxlen=length)
+    counter = length
     for _ in map(window.append, item):
-        i -= 1
-        if not i:
-            i = step
+        counter -= 1
+        if not counter:
+            counter = step
             yield tuple(window)
     size = len(window)
     if size < length:
-        yield tuple(itertools.chain(
-            window, itertools.repeat(fill_value, length - size)))
-    elif 0 < i < min(step, length):
-        window += (fill_value,) * i
+        yield tuple(
+            itertools.chain(window, itertools.repeat(fill_value, length - size))
+        )
+    elif 0 < counter < min(step, length):
+        window += (fill_value,) * counter
         yield tuple(window)
+
 
 """ Specific Converters """
 
-@integerify.register
+
+@integerify.register(float)
 def float_to_int(item: float, /) -> int:
     """Converts `item` to an int.
 
@@ -443,17 +517,21 @@ def float_to_int(item: float, /) -> int:
         item (float): item to convert.
 
     Returns:
-        int: derived from `item`.
+        int: derived from `item`. Any fractional part is truncated.
 
     """
     return int(item)
 
-@integerify.register
+
+@integerify.register(str)
 def str_to_int(item: str, /) -> int:
     """Converts `item` to an int.
 
     Args:
         item (str): item to convert.
+
+    Raises:
+        ValueError: if `item` is not a valid representation of an int.
 
     Returns:
         int: derived from `item`.
@@ -461,7 +539,105 @@ def str_to_int(item: str, /) -> int:
     """
     return int(item)
 
-# @camina.dynamic.dispatcher
+
+@functools.singledispatch
+def to_int(item: Any, /) -> int:
+    """Converts `item` to an int.
+
+    Args:
+        item (Any): item to convert to an int.
+
+    Raises:
+        TypeError: if `item` is a type that is not registered.
+
+    Returns:
+        int: derived from `item`.
+
+    """
+    if isinstance(item, int):
+        return item
+    raise TypeError(_UNSUPPORTED.format(name=type(item).__name__))
+
+
+to_int.register(float, float_to_int)
+to_int.register(str, str_to_int)
+
+
+@functools.singledispatch
+def to_index(item: Any, /) -> int:
+    """Converts `item` to an int that can be used as an index.
+
+    Args:
+        item (Any): item to convert to an index. Anything that implements
+            `__index__` is supported.
+
+    Raises:
+        TypeError: if `item` is a type that is not registered.
+
+    Returns:
+        int: derived from `item`.
+
+    """
+    try:
+        return operator.index(item)
+    except TypeError:
+        raise TypeError(_UNSUPPORTED.format(name=type(item).__name__)) from None
+
+
+@to_index.register(str)
+def str_to_index(item: str, /) -> int:
+    """Converts a str to an int that can be used as an index.
+
+    Args:
+        item (str): item to convert to an index.
+
+    Raises:
+        ValueError: if `item` is not a valid representation of an int.
+
+    Returns:
+        int: derived from `item`.
+
+    """
+    return int(item)
+
+
+@to_index.register(float)
+def _float_to_index(item: float, /) -> int:
+    """Converts a float with an integer value to an index.
+
+    Args:
+        item (float): item to convert to an index.
+
+    Raises:
+        ValueError: if `item` is not a whole number.
+
+    Returns:
+        int: derived from `item`.
+
+    """
+    if not float(item).is_integer():
+        raise ValueError(f"{item} is not a whole number")
+    return int(item)
+
+
+@functools.singledispatch
+def to_dict(item: Any, /) -> dict[Hashable, Any]:
+    """Converts `item` to a dict.
+
+    Args:
+        item (Any): item to convert to a dict.
+
+    Raises:
+        TypeError: if `item` is a type that is not registered.
+
+    Returns:
+        dict[Hashable, Any]: derived from `item`.
+
+    """
+    return dict(dictify(item))
+
+
+@functools.singledispatch
 def to_list(item: Any, /) -> list[Any]:
     """Converts `item` to a list.
 
@@ -475,27 +651,38 @@ def to_list(item: Any, /) -> list[Any]:
         list[Any]: derived from `item`.
 
     """
-    if isinstance(item, list[Any]):
+    if isinstance(item, list):
         return item
-    else:
-        raise TypeError(
-            f'item cannot be converted because it is an unsupported type: '
-            f'{type(item).__name__}')
+    if _is_collection(item):
+        return list(item)
+    raise TypeError(_UNSUPPORTED.format(name=type(item).__name__))
 
-# @to_list.register
+
+@to_list.register(str)
 def str_to_list(item: str, /) -> list[Any]:
-    """[summary]
+    """Converts a str representation of a list to a list.
 
     Args:
-        item (str): [description]
+        item (str): str with a python list literal (for example, "[1, 2, 3]").
+
+    Raises:
+        ValueError: if `item` is not a valid python literal.
+        TypeError: if `item` is a literal that is not a list.
 
     Returns:
-        list[Any]: [description]
-    """
-    """Converts a str to a list."""
-    return ast.literal_eval(item)
+        list[Any]: derived from `item`.
 
-# @camina.dynamic.dispatcher
+    """
+    try:
+        result = ast.literal_eval(item)
+    except SyntaxError as error:
+        raise ValueError(f"{item!r} is not a valid python literal") from error
+    if not isinstance(result, list):
+        raise TypeError(f"{item!r} is not a list literal")
+    return result
+
+
+@functools.singledispatch
 def to_float(item: Any, /) -> float:
     """Converts `item` to a float.
 
@@ -511,38 +698,41 @@ def to_float(item: Any, /) -> float:
     """
     if isinstance(item, float):
         return item
-    else:
-        raise TypeError(
-            f'item cannot be converted because it is an unsupported type: '
-            f'{type(item).__name__}')
+    raise TypeError(_UNSUPPORTED.format(name=type(item).__name__))
 
-# @to_float.register
+
+@to_float.register(int)
 def int_to_float(item: int, /) -> float:
-    """[summary]
+    """Converts an int to a float.
 
     Args:
-        item (int): [description]
+        item (int): item to convert to a float.
 
     Returns:
-        float: [description]
+        float: derived from `item`.
+
     """
-    """Converts an int to a float."""
     return float(item)
 
-# @to_float.register
+
+@to_float.register(str)
 def str_to_float(item: str, /) -> float:
-    """[summary]
+    """Converts a str to a float.
 
     Args:
-        item (str): [description]
+        item (str): item to convert to a float.
+
+    Raises:
+        ValueError: if `item` is not a valid representation of a float.
 
     Returns:
-        float: [description]
+        float: derived from `item`.
+
     """
-    """Converts a str to a float."""
     return float(item)
 
-# @camina.dynamic.dispatcher
+
+@functools.singledispatch
 def to_path(item: Any, /) -> pathlib.Path:
     """Converts `item` to a pathlib.Path.
 
@@ -558,25 +748,25 @@ def to_path(item: Any, /) -> pathlib.Path:
     """
     if isinstance(item, pathlib.Path):
         return item
-    else:
-        raise TypeError(
-            f'item cannot be converted because it is an unsupported type: '
-            f'{type(item).__name__}')
+    raise TypeError(_UNSUPPORTED.format(name=type(item).__name__))
 
-@pathlibify.register
+
+@to_path.register(str)
+@pathlibify.register(str)
 def str_to_path(item: str, /) -> pathlib.Path:
-    """[summary]
+    """Converts a str to a pathlib.Path.
 
     Args:
-        item (str): [description]
+        item (str): item to convert to a pathlib.Path.
 
     Returns:
-        pathlib.Path: [description]
-    """
-    """Converts a str to a pathlib.Path."""
-    return pathlib.pathlib.Path(item)
+        pathlib.Path: derived from `item`.
 
-# @camina.dynamic.dispatcher
+    """
+    return pathlib.Path(item)
+
+
+@functools.singledispatch
 def to_str(item: Any, /) -> str:
     """Converts `item` to a str.
 
@@ -592,90 +782,98 @@ def to_str(item: Any, /) -> str:
     """
     if isinstance(item, str):
         return item
-    else:
-        raise TypeError(
-            f'item cannot be converted because it is an unsupported type: '
-            f'{type(item).__name__}')
+    raise TypeError(_UNSUPPORTED.format(name=type(item).__name__))
 
-# @to_str.register
+
+@to_str.register(int)
 def int_to_str(item: int, /) -> str:
-    """[summary]
+    """Converts an int to a str.
 
     Args:
-        item (int): [description]
+        item (int): item to convert to a str.
 
     Returns:
-        str: [description]
+        str: derived from `item`.
+
     """
-    """Converts an int to a str."""
     return str(item)
 
-# @to_str.register
+
+@to_str.register(float)
 def float_to_str(item: float, /) -> str:
-    """[summary]
+    """Converts a float to a str.
 
     Args:
-        item (float): [description]
+        item (float): item to convert to a str.
 
     Returns:
-        str: [description]
+        str: derived from `item`.
+
     """
-    """Converts an float to a str."""
     return str(item)
 
-# @to_str.register
+
+@to_str.register(list)
 def list_to_str(item: list[Any], /) -> str:
-    """[summary]
+    """Converts a list to a str.
 
     Args:
-        item (list[Any]): [description]
+        item (list[Any]): item to convert to a str.
 
     Returns:
-        str: [description]
-    """
-    """Converts a list to a str."""
-    return ', '.join(item)
+        str: the items in `item` separated by a comma and a space.
 
-# @to_str.register
+    """
+    return ", ".join(str(i) for i in item)
+
+
+@to_str.register(type(None))
 def none_to_str(item: None, /) -> str:
-    """[summary]
+    """Converts None to a str.
 
     Args:
-        item (None): [description]
+        item (None): None.
 
     Returns:
-        str: [description]
-    """
-    """Converts None to a str."""
-    return 'None'
+        str: "None".
 
-# @to_str.register
-def path_to_str(item: pathlib.Path, /) -> str:
+    """
+    return "None"
+
+
+@to_str.register(pathlib.PurePath)
+def path_to_str(item: pathlib.PurePath, /) -> str:
     """Converts a pathlib.Path to a str.
 
     Args:
-        item (pathlib.Path): [description]
+        item (pathlib.PurePath): item to convert to a str.
 
     Returns:
-        str: [description]
+        str: derived from `item`.
 
     """
     return str(item)
 
-# @to_str.register
-def datetime_to_string(
-    item: datetime.datetime, /,
-    time_format: str | None = '%Y-%m-%d_%H-%M') -> str:
-    """Return datetime `item` as a str based on `time_format`.
+
+@to_str.register(datetime.datetime)
+def datetime_to_str(
+    item: datetime.datetime,
+    /,
+    time_format: str | None = "%Y-%m-%d_%H-%M",
+) -> str:
+    """Returns datetime `item` as a str based on `time_format`.
 
     Args:
         item (datetime.datetime): datetime object to convert to a str.
-        time_format (Optional[str]): format to create a str from datetime. The
+        time_format (str | None): format to create a str from datetime. The
             passed argument should follow the rules of datetime.strftime.
-            Defaults to '%Y-%m-%d_%H-%M'.
+            Defaults to "%Y-%m-%d_%H-%M".
 
     Returns:
         str: converted datetime `item`.
 
     """
-    return item.strftime(time_format)
+    return item.strftime(time_format or "%Y-%m-%d_%H-%M")
+
+
+datetime_to_string = datetime_to_str

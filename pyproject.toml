@@ -6,84 +6,115 @@ description = "Flexible, lightweight, extensible, easy-to-use data structures an
 authors = [{name = "Corey Rayburn Yung", email = "coreyrayburnyung@gmail.com"}]
 license = {text = "Apache Software License 2.0"}
 readme = "README.md"
-requires-python = ">=3.9"
-dynamic = ["version"]
+requires-python = ">=3.11"
+version = "0.1.16"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Topic :: Software Development"]
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14"]
 keywords = []
-dependencies = [
-    "miller >= 0.1.8"]
+dependencies = []
+
+[project.optional-dependencies]
+
 
 [project.urls]
 Documentation = "https://WithPrecedent.github.io/camina"
 Repository = "https://github.com/WithPrecedent/camina"
+Homepage = "https://github.com/WithPrecedent/camina"
 Issues = "https://github.com/WithPrecedent/camina/issues"
 Changelog = "https://WithPrecedent.github.io/camina/changelog"
 
-[build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
+[dependency-groups]
+dev = [
+    "uv",
 
-[tool.pdm]
-plugins = [
-    "sync-pre-commit-lock[pdm]",
-    "pdm-multirun"]
-
-[tool.pdm.build]
-package-dir = "src"
-# editable-backend = "editables"
-
-[tool.pdm.dev-dependencies]
-docs = [
-    "markdown-callouts >= 0.3",
-    "markdown-exec >= 1.6.0",
-    "mkdocs >= 1.5.2",
-    "mkdocs-coverage >= 1.0.0",
-    "mkdocs-gen-files >= 0.5.0",
-    "mkdocs-git-committers-plugin-2 >= 1.1.2",
-    "mkdocs-literate-nav >= 0.6.0",
-    "mkdocs-material >= 9.1.2",
-    "mkdocs-minify-plugin >= 0.7.1",
-    "mkdocstrings[python] >= 0.22.0",
-    "toml >= 0.10.2"]
-quality = [
-    "pre-commit >= 3.3.3",
-    "ruff >= 0.0.286"]
+    "markdown-callouts",
+    "markdown-exec",
+    "mkdocs",
+    "mkdocs-coverage",
+    "mkdocs-gen-files",
+    "mkdocs-git-committers-plugin-2",
+    "mkdocs-literate-nav",
+    "mkdocs-material",
+    "mkdocs-minify-plugin",
+    "mkdocstrings[python]",
+    "toml",
+    "mypy",
+    "pre-commit",
+    "ruff",
+    {include-group = "tests"}]
 tests = [
-    "coverage >= 7.2.7",
-    "pytest >= 7.4.0",
-    "pytest-cov >= 4.1.0",
-    "pytest-randomly >= 3.13.0",
-    "pytest-xdist >= 3.3.1"]
+    "coverage",
+    "pytest",
+    "pytest-cov",
+    "pytest-randomly",
+    "pytest-xdist"]
 
-[tool.pdm.version]
-source = "file"
-path = "src/camina/__init__.py"
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/camina"]
+
+
+[tool.coverage.report]
+skip_empty = true
+show_missing = true
+exclude_lines = [
+  "if TYPE_CHECKING:"]
+
+[tool.coverage.paths]
+source = ["src", "*/site-packages"]
+tests = ["tests", "*/tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["camina", "tests"]
+
+
+
+[tool.mypy]
+files = ['src']
+disallow_untyped_defs = true
+disallow_any_unimported = true
+no_implicit_optional = true
+check_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
+show_error_codes = true
+
+
+[tool.pydoclint]
+# Docstrings document the exceptions that a function can raise, even when they
+# are raised by the functions it calls.
+skip-checking-raises = true
 
 [tool.pytest.ini_options]
+testpaths = ["tests"]
 addopts = "--showlocals"
-asyncio_mode = "auto"
 filterwarnings = ["ignore::DeprecationWarning"]
 pythonpath = ["src"]
 
 [tool.ruff]
 extend-exclude = ["docs", "scripts", "site", "tests", ".*.*"]
 fix = true
-fixable = ["ALL"]
-ignore = [
+line-length = 80
+lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+lint.fixable = ["ALL"]
+lint.ignore = [
     "A001",  # Variable is shadowing a Python builtin
-    "ANN101",  # Missing type annotation for self
-    "ANN102",  # Missing type annotation for cls
     "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed
     "ARG003",  # Unused class method argument: `parameters`
     "ARG005",  # Unused lambda argument
+    "COM812",  # Recommended disable by Ruff
     "C901",  # Too complex
     "D105",  # Missing docstring in magic method
     "D400",  # First line must end in a period
@@ -91,12 +122,12 @@ ignore = [
     "D406",  # Section name should end with a newline - bugged for 'Attributes:'
     "D407",  # Missing dashed underline after section ("Args")
     "D415",  # First line must end in a period, question mark, or exclamation point
-    "DTZ005",  # The use of `datetime.now()` without `tz` argument is not allowed
     "E501",  # Line too long
     "E731",  # Do not assign a `lambda` expression, use a `def`
     "ERA001",  # Commented out code
     "EXE002",  # No shebang is present in an executable file
     "FBT001",  # Boolean positional arg in function definition
+    "FBT002",  # Boolean default positional arg in function definition
     "G004",  # Logging statement uses f-string
     "PTH123",  # `open()` should be replaced by `Path.open()`
     "PLR0911",  # Too many return statements
@@ -105,17 +136,12 @@ ignore = [
     "PLR0915",  # Too many statements
     "PLR1711", # Useless 'return' at the end of function
     "Q000",  # Single quotes found but double quotes preferred
-    # "S0001",  # Use of assert detected
     "RET505",  # Unnecessary `else` after `return` statement
+    # "S0001",  # Use of assert detected
     "SLF001", # Private member accessed
     "TID252",  # Relative imports are banned
-    "TRY003",  # Avoid specifying long messages outside the exception class
-    "UP004"]  # Class inherits from `object`
-    # "W0105",  # String statement has no effect
-    # "W0221",  # Arguments differ
-    # "W0222",]  # Access to a protected member
-line-length = 80
-select = [
+    "TRY003",]  # Avoid specifying long messages outside the exception class
+lint.select = [
     "A",  # flake8-buttons
     "ANN",  # flake8-annotations
     "ARG",  # flake8-unused-arguments
@@ -159,21 +185,40 @@ select = [
     "T",  #
     "T10",  # flake8-debugger
     "T20",  # flake8-print
-    "TCH",  # flake8-type-checking
     "TID",  # flake8-tidy-imports
     "TRY",  # tryceratops
     "UP",  # pyupgrade
     "W",  # pydocstyle warnings
     "YTT",]  # flake8-2020
+lint.task-tags = ["To Do:"]
 
-[tool.ruff.flake8-annotations]
+[tool.ruff.lint.per-file-ignores]
+# The fallback functions of singledispatch dispatchers only raise an error.
+"src/camina/convert.py" = ["ARG001"]
+"src/camina/modify.py" = ["ARG001"]
+
+[tool.ruff.lint.flake8-annotations]
 suppress-none-returning = true
 
-[tool.ruff.flake8-quotes]
+[tool.ruff.lint.flake8-quotes]
 docstring-quotes = "double"
+inline-quotes = "double"
+multiline-quotes = "double"
 
-[tool.ruff.isort]
+[tool.ruff.lint.flake8-type-checking]
+exempt-modules = ["typing", "typing_extensions"]
+
+[tool.ruff.lint.flake8-unused-arguments]
+ignore-variadic-names = true
+
+[tool.ruff.lint.isort]
 case-sensitive = true
-known-first-party = ["camina"]
 required-imports = ["from __future__ import annotations"]
 split-on-trailing-comma = false
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+ignore-decorators = ["typing.overload"]
+
+[tool.uv]
+package = true

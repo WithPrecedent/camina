@@ -25,15 +25,18 @@ forms. For conversion of a known type to another type, the function name should
 be:
 
 ```python
-f'{item type}_to_{output type}'
+f"{item type}_to_{output type}"
 ```
 
 For a conversion from an unknown type to another type, the function name should
 be:
 
 ```python
-f'to_{output type}'
+f"to_{output type}"
 ```
+
+The "to" functions are `functools.singledispatch` functions and the functions
+for known types should be registered with them.
 
 ## Pull requests guidelines
 

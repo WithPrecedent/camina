@@ -1,13 +1,12 @@
-"""Flexible, lightweight, extensible, easy-to-use data structures and types"""
+"""Flexible, lightweight, extensible, easy-to-use data structures and types."""
 
 from __future__ import annotations
 
-__version__ = '0.1.16'
+__version__ = "0.1.16"
 
-__author__: str = 'Corey Rayburn Yung'
+__author__: str = "Corey Rayburn Yung"
 
-
-from .base import Base, Descriptor, Proxy
+from .base import Bunch, Descriptor, Proxy, resolve_default
 from .clock import how_soon_is_now, timer
 from .configuration import set_key_namer, set_method_namer
 from .convert import (
@@ -25,7 +24,7 @@ from .convert import (
     typify,
     windowify,
 )
-from .label import Name, namify
+from .label import Name, get_key_namer, get_method_namer, namify
 from .mapping import Catalog, ChainDictionary, Dictionary, Repository
 from .modify import (
     add_prefix,
@@ -50,6 +49,8 @@ from .modify import (
     drop_dunders,
     drop_dunders_dict,
     drop_dunders_list,
+    drop_dunders_set,
+    drop_dunders_tuple,
     drop_prefix,
     drop_prefix_from_dict,
     drop_prefix_from_list,
@@ -59,6 +60,8 @@ from .modify import (
     drop_privates,
     drop_privates_dict,
     drop_privates_list,
+    drop_privates_set,
+    drop_privates_tuple,
     drop_substring,
     drop_substring_from_dict,
     drop_substring_from_list,
@@ -76,36 +79,19 @@ from .modify import (
     snakify,
     uniquify,
 )
-from .sequence import Hashable, Listing
+from .sequence import Hybrid, Listing
 
 __all__: list[str] = [
-    "Base",
+    "Bunch",
+    "Catalog",
+    "ChainDictionary",
     "Descriptor",
+    "Dictionary",
+    "Hybrid",
+    "Listing",
+    "Name",
     "Proxy",
-    "how_soon_is_now",
-    "timer",
-    "set_key_namer",
-    "set_method_namer",
-    "dictify",
-    "hashify",
-    "instancify",
-    "integerify",
-    "iterify",
-    "kwargify",
-    "listify",
-    "namify",
-    "numify",
-    "pathlibify",
-    "stringify",
-    "tuplify",
-    "typify",
-    "windowify",
-    "Name", 
-    "namify",
-    "Catalog", 
-    "ChainDictionary", 
-    "Dictionary", 
-    "Repository", 
+    "Repository",
     "add_prefix",
     "add_prefix_to_dict",
     "add_prefix_to_list",
@@ -125,9 +111,12 @@ __all__: list[str] = [
     "deduplicate",
     "deduplicate_list",
     "deduplicate_tuple",
+    "dictify",
     "drop_dunders",
     "drop_dunders_dict",
     "drop_dunders_list",
+    "drop_dunders_set",
+    "drop_dunders_tuple",
     "drop_prefix",
     "drop_prefix_from_dict",
     "drop_prefix_from_list",
@@ -137,6 +126,8 @@ __all__: list[str] = [
     "drop_privates",
     "drop_privates_dict",
     "drop_privates_list",
+    "drop_privates_set",
+    "drop_privates_tuple",
     "drop_substring",
     "drop_substring_from_dict",
     "drop_substring_from_list",
@@ -149,9 +140,28 @@ __all__: list[str] = [
     "drop_suffix_from_set",
     "drop_suffix_from_str",
     "drop_suffix_from_tuple",
+    "get_key_namer",
+    "get_method_namer",
+    "hashify",
+    "how_soon_is_now",
+    "instancify",
+    "integerify",
+    "iterify",
+    "kwargify",
+    "listify",
+    "namify",
+    "numify",
+    "pathlibify",
+    "resolve_default",
     "separate",
     "separate_str",
+    "set_key_namer",
+    "set_method_namer",
     "snakify",
+    "stringify",
+    "timer",
+    "tuplify",
+    "typify",
     "uniquify",
-    "Hashable", 
-    "Listing"]
+    "windowify",
+]
