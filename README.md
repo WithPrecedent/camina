@@ -16,43 +16,27 @@
 
 *"Truth is truth. How you deal with it is up to you."* - Captain Camina Drummer
 
-`camina` adds functionality to core Python container classes and provides functions for common tasks. It has three parts:
+`camina` provides functions for common tasks with Python data. It has three parts:
 
-* **Containers**: drop-in replacements for `dict` and `list` (plus a few specialized cousins) that share a small, consistent interface: `add`, `delete`, and `subset`.
 * **Converters**: functions that turn one type into another (`listify`, `tuplify`, `numify`, `pathlibify`, and more).
 * **Modifiers**: functions that change the contents of strings, lists, tuples, sets, and dicts without changing their types (`add_prefix`, `drop_suffix`, `snakify`, and more).
+* **Naming and time tools**: `namify` infers names for objects, and `how_soon_is_now` and `timer` handle timestamps and timing.
 
 `camina` is fully typed, has no dependencies, and supports Python 3.11 and later.
 
 ## Why use camina?
 
-* **One interface for many containers.** Every container in `camina` inherits from `Bunch`, so `add` is always the default way to put something in, `delete` the default way to take something out, and `subset` the default way to carve out a piece as a new container of the same type. The `+` and `+=` operators call `add`.
-* **Flexible lookups.** A `Catalog` understands wildcard keys (`"all"`, `"default"`, `"none"`) and lists of keys, which makes it a natural home for options and strategies. A `Hybrid` lets you use one collection as both a list and a dict, even with duplicate "keys".
-* **Names for free.** A `Repository` picks the keys for the items you store, and can guarantee that it never overwrites an existing item.
 * **Small, dependable helpers.** The converters and modifiers work on many types through `functools.singledispatch`, so you can also register your own types or call the type-specific versions directly.
+* **Types are kept.** Modifiers return the same type they were given (a `list` stays a `list`, an `OrderedDict` stays an `OrderedDict`) and never change what you pass in.
+* **Forgiving inputs.** Functions like `listify` and `iterify` let your own functions accept "one item or many" arguments without special cases.
 
-Reasons *not* to use `camina`: if you only need the built-in containers, adding a dependency buys you little. Some behaviors intentionally differ from the built-ins (for example, `Dictionary.get` raises a `KeyError` when a key is missing and no default exists, and `keys()`, `values()`, and `items()` return tuples), so `camina` containers are best treated as friendly cousins rather than exact clones.
+Reasons *not* to use `camina`: most of these helpers are only a few lines of Python, so if you need just one of them, copying it may be simpler than adding a dependency.
 
 ## Features
 
-### Containers
-
-All of these are dataclasses that store their data in a `contents` attribute.
-
-* `Bunch`: abstract base class for the containers below. Subclasses must provide `add`, `delete`, and `subset`.
-* `Dictionary`: drop-in replacement for a python `dict`. It has an `add` method for adding data, a `delete` method for deleting data, a `subset` method for returning a subset of the key/value pairs in a new `Dictionary`, and a `default_factory` (a default value or a callable that creates one) that `get` uses for missing keys.
-* `Catalog`: wildcard-accepting `Dictionary` intended for storing different options and strategies. The keys `"all"`, `"default"`, and `"none"` return all values, the values listed in the `default` attribute, and nothing, respectively. If a list of keys is provided, a list of the matching values is returned.
-* `ChainDictionary`: combines a `Dictionary` with `collections.ChainMap`. Keys are looked up in a list of mappings, in order.
-* `Repository`: a `Dictionary` that automatically supplies key names for stored items. The `overwrite` argument determines if a unique key should always be created or whether entries may be overwritten.
-* `Listing`: drop-in replacement for a python `list` with `add`, `delete`, `prepend`, and `subset` methods.
-* `Hybrid`: a `Listing` with both dict and list interfaces. Stored items must be hashable or have a `name` attribute.
-* `Proxy`: transparently wraps an object and directs attribute and item access to the wrapped object when appropriate.
-* `Descriptor`: base class for descriptors that stores values under a private name.
-* `Name`: descriptor that supplies an inferred `name` attribute to an object.
-
 ### Converters
 
-Except where noted, these live in the top-level `camina` namespace. The `to_*` family (listed below) lives in `camina.convert`.
+Except where noted, these live in the top-level `camina` namespace. The single-purpose `to_*` family (listed below) lives in `camina.convert`.
 
 * `dictify`: converts to or validates a dict.
 * `hashify`: converts to or validates a hashable object.
@@ -102,12 +86,8 @@ Each modifier below is a `functools.singledispatch` function that supports `str`
 
 ### Other tools
 
-* `resolve_default`: returns a default value, calling it first if it is callable. The containers use it for their `default_factory` attribute.
 * `how_soon_is_now`: returns the current date and time as a str.
 * `timer`: decorator that reports how long the decorated function takes to run.
-* `set_key_namer` and `get_key_namer`: set and get the global function used to infer names (keys) for items. `Repository`, `Hybrid`, and `Name` use it.
-* `set_method_namer` and `get_method_namer`: set and get the global function used to name factory methods.
-
 ## Getting started
 
 ### Requirements
@@ -126,131 +106,14 @@ pip install camina
 
 The examples below are run as part of the test suite, so they are always up to date.
 
-#### Dictionaries
-
-A `Dictionary` behaves like a `dict`, but adds `add`, `delete`, `subset`, and a default value for `get`:
-
-```pycon
->>> import camina
->>> dictionary = camina.Dictionary({"a": 1, "b": 2})
->>> dictionary.add({"c": 3})
->>> dictionary.subset(include=["a", "c"]).keys()
-('a', 'c')
->>> dictionary.subset(exclude="a").contents
-{'b': 2, 'c': 3}
->>> dictionary.get("missing", 0)
-0
->>> dictionary.setdefault(value=None)
->>> dictionary.delete("b")
->>> dictionary.contents
-{'a': 1, 'c': 3}
-```
-
-A `Catalog` recognizes wildcard keys and lists of keys:
-
-```pycon
->>> catalog = camina.Catalog({"linear": "LinearModel", "tree": "TreeModel"})
->>> catalog["linear"]
-'LinearModel'
->>> catalog["all"]
-['LinearModel', 'TreeModel']
->>> catalog[["tree", "linear"]]
-['TreeModel', 'LinearModel']
->>> catalog.default = ["tree"]
->>> catalog["default"]
-['TreeModel']
->>> catalog["none"] is None
-True
-```
-
-A `Repository` chooses the keys for you and, by default, never overwrites an existing item:
-
-```pycon
->>> repository = camina.Repository()
->>> repository.add(camina.Dictionary())
->>> repository.add(camina.Dictionary())
->>> repository.add([1, 2], key="numbers")
->>> repository.keys()
-('dictionary', 'dictionary2', 'numbers')
-```
-
-A `ChainDictionary` searches several mappings in order:
-
-```pycon
->>> chain = camina.ChainDictionary([{"a": 1}, {"a": 2, "b": 3}])
->>> chain["a"], chain["b"]
-(1, 3)
->>> chain.keys()
-('a', 'b')
-```
-
-#### Lists
-
-A `Listing` is a `list` that can `add` a single item or a whole sequence and can `prepend`:
-
-```pycon
->>> listing = camina.Listing(["a", "b"])
->>> listing.add(["c", "d"])
->>> listing.prepend("z")
->>> listing.contents
-['z', 'a', 'b', 'c', 'd']
->>> listing.subset(exclude=["z", "d"]).contents
-['a', 'b', 'c']
->>> (listing + "e").contents[-1]
-'e'
-```
-
-A `Hybrid` is a list that can also be used like a dict. Items are found by index or by name (their `name` attribute, or the item itself if it is a str or other hashable):
-
-```pycon
->>> import dataclasses
->>> @dataclasses.dataclass
-... class Step:
-...     name: str
->>> hybrid = camina.Hybrid([Step("load"), Step("clean"), "save"])
->>> hybrid[0]
-Step(name='load')
->>> hybrid["clean"]
-Step(name='clean')
->>> hybrid.keys()
-('load', 'clean', 'save')
-```
-
-#### Proxies and descriptors
-
-A `Proxy` forwards attribute and item access to the object it wraps:
-
-```pycon
->>> @dataclasses.dataclass
-... class Settings:
-...     name: str = "default"
->>> settings = Settings()
->>> proxy = camina.Proxy(settings)
->>> proxy.name
-'default'
->>> proxy.name = "changed"
->>> settings.name
-'changed'
->>> "changed" in camina.Proxy(["changed"])
-True
-```
-
-A `Name` descriptor gives a class a `name` that is inferred from the class unless a name is stored:
-
-```pycon
->>> class Widget:
-...     name = camina.Name()
->>> widget = Widget()
->>> widget.name
-'widget'
->>> widget.name = "custom"
->>> widget.name
-'custom'
-```
-
 #### Converters
 
 ```pycon
+>>> import camina
+>>> import dataclasses
+>>> @dataclasses.dataclass
+... class Settings:
+...     name: str = "default"
 >>> camina.listify("a"), camina.listify(("a", "b")), camina.listify(None)
 (['a'], ['a', 'b'], [])
 >>> camina.tuplify("ab"), camina.tuplify(["a", "b"])
@@ -263,8 +126,8 @@ A `Name` descriptor gives a class a `name` that is inferred from the class unles
 'a, b'
 >>> camina.pathlibify("docs/index.md").name
 'index.md'
->>> camina.namify(dictionary), camina.namify(Step("x")), camina.namify(Widget)
-('dictionary', 'x', 'widget')
+>>> camina.namify(Settings), camina.namify(Settings("x")), camina.namify("y")
+('settings', 'x', 'y')
 >>> list(camina.windowify([1, 2, 3, 4], length=3))
 [(1, 2, 3), (2, 3, 4)]
 >>> camina.instancify(Settings, name="new")
@@ -320,19 +183,6 @@ work completed in 0:00:00
 'done'
 ```
 
-#### Configuration
-
-`Repository`, `Hybrid`, and `Name` infer names with `camina.namify` unless you set a different function:
-
-```pycon
->>> camina.set_key_namer(lambda item: type(item).__name__.upper())
->>> repository = camina.Repository()
->>> repository.add(3.5)
->>> repository.keys()
-('FLOAT',)
->>> camina.set_key_namer(None)  # Restores camina.namify.
-```
-
 ## Contributing
 
 Contributors are always welcome. Feel free to grab an [issue](https://www.github.com/WithPrecedent/camina/issues) to work on or make a suggested improvement. If you wish to contribute, please read the [Contribution Guide](https://www.github.com/WithPrecedent/camina/contributing.md) and [Code of Conduct](https://www.github.com/WithPrecedent/camina/code_of_conduct.md).
@@ -342,15 +192,11 @@ Contributors are always welcome. Feel free to grab an [issue](https://www.github
 * [boltons](https://github.com/mahmoud/boltons): a large collection of pure-Python utilities, including `iterutils` and `dictutils`.
 * [more-itertools](https://github.com/more-itertools/more-itertools): additional building blocks for iterators. `camina.windowify` is adapted from its `windowed` function.
 * [toolz](https://github.com/pytoolz/toolz): functional utilities for iterators, functions, and dictionaries.
-* [sortedcontainers](https://github.com/grantjenks/python-sortedcontainers): sorted list, set, and dict types.
 
 ## Acknowledgments
 
-* The Python core developers, whose [Descriptor HowTo Guide](https://docs.python.org/3/howto/descriptor.html) informed the `Descriptor` class.
 * Eric V. Smith, whose `dataclass_tools` recipe is the basis of `add_slots`.
 * The maintainers of `more-itertools`, for the algorithm behind `windowify`.
-
-This project was generated from [@WithPrecedent](https://github.com/WithPrecedent)'s [![cookiecutter Template](https://img.shields.io/badge/snickerdoodle-bisque?style=for-the-badge&logo=cookiecutter&labelColor=gray)](https://www.github.com/WithPrecedent/snickerdoodle) template.
 
 ## License
 

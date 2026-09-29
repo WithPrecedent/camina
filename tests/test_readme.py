@@ -22,7 +22,7 @@ def test_readme_has_no_placeholders() -> None:
 
 def test_readme_examples_run() -> None:
     """Runs every `pycon` block in the README as one doctest session."""
-    assert len(BLOCKS) > 10
+    assert len(BLOCKS) >= 3
     parser = doctest.DocTestParser()
     runner = doctest.DocTestRunner(
         optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
@@ -34,7 +34,7 @@ def test_readme_examples_run() -> None:
         runner.run(test, out=failures.append, clear_globs=False)
         namespace.update(test.globs)
     assert not failures, "".join(failures)
-    assert runner.summarize(verbose=False).attempted > 50
+    assert runner.summarize(verbose=False).attempted > 30
 
 
 def _listed_names() -> list[str]:

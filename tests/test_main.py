@@ -37,15 +37,7 @@ def test_exports_are_documented(name: str) -> None:
 
 def test_public_names_are_exported() -> None:
     """Checks that public functions and classes in modules are exported."""
-    modules = [
-        camina.base,
-        camina.clock,
-        camina.configuration,
-        camina.label,
-        camina.mapping,
-        camina.modify,
-        camina.sequence,
-    ]
+    modules = [camina.clock, camina.label, camina.modify]
     for module in modules:
         for name, value in vars(module).items():
             defined_here = getattr(value, "__module__", None) == module.__name__

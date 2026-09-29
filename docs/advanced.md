@@ -1,44 +1,5 @@
 # Advanced User Guide
 
-## Building your own container
-
-To create a container with the same interface as the others in `camina`,
-subclass `camina.Bunch` and implement `add`, `delete`, and `subset`. `Bunch`
-is a dataclass, so the container's data lives in the `contents` field:
-
-```python
-import dataclasses
-from typing import Any
-
-import camina
-
-
-@dataclasses.dataclass
-class Bag(camina.Bunch):
-    """Unordered collection that allows repeated items."""
-
-    contents: list[Any] = dataclasses.field(default_factory=list)
-
-    def add(self, item: Any) -> None:
-        self.contents.append(item)
-
-    def delete(self, item: Any) -> None:
-        self.contents.remove(item)
-
-    def subset(self, include: Any = None, exclude: Any = None) -> "Bag":
-        kept = [i for i in self.contents if i != exclude]
-        return dataclasses.replace(self, contents=kept)
-
-
-bag = Bag(["a"])
-bag += "b"          # calls bag.add("b") in place
-bigger = bag + "c"  # copy with "c" added
-```
-
-`Bunch` supplies `+`, `+=`, `del bunch[item]`, `in`, `len`, and iteration.
-`Dictionary` and `Listing` also mix in `MutableMapping` and `MutableSequence`,
-which is why they have the full dict and list interfaces.
-
 ## Extending the converters and modifiers
 
 Most converters and modifiers are `functools.singledispatch` functions. You can
@@ -66,9 +27,9 @@ type in advance (for example, `camina.add_prefix_to_list`).
 Modifiers keep the type of what they modify. A `dict` subclass, an
 `OrderedDict`, and a `defaultdict` all come back as themselves. If a container
 type cannot be recreated from a dict or list, a plain `dict` or `list` is
-returned instead.
+returned instead. The originals are never changed.
 
-## Naming and keys
+## Naming
 
 `camina.namify` creates a name for anything:
 
@@ -78,81 +39,43 @@ returned instead.
    snake case.
 4. Otherwise the snake case name of the item's class is used.
 
-`Repository`, `Hybrid`, and the `Name` descriptor all use the *key namer*, a
-global function that defaults to `namify`. Replace it for your whole program
-with `set_key_namer`, and restore the default by passing `None`:
+If none of these produce a name, the `default` argument is returned.
+
+## Specific converters
+
+Besides the general converters, `camina.convert` has single-purpose functions
+named `to_{output type}` and `{input type}_to_{output type}`. The `to_*`
+functions dispatch on the type of the item, and the others are registered with
+them:
 
 ```python
-camina.set_key_namer(lambda item: type(item).__name__.lower())
-camina.get_key_namer()      # your function
-camina.set_key_namer(None)  # back to camina.namify
+from camina import convert
+
+convert.to_float("3.5")             # 3.5
+convert.to_float(3)                 # 3.0
+convert.to_list("[1, 2]")           # [1, 2]
+convert.to_str(["a", 1])            # 'a, 1'
+convert.to_index(4.0)               # 4
+convert.str_to_path("a/b")          # PosixPath('a/b')
 ```
 
-To change how only one `Repository` names items, subclass it and override
-`_get_name`. `set_method_namer` and `get_method_namer` do the same for the names
-of factory methods (by default, `"from_" + namify(item)`).
+Register your own conversions the same way:
+`@convert.to_str.register(MyType)`.
 
-### The Name descriptor
+## Defaults for missing input
 
-`Name` gives a class a `name` attribute that is inferred until one is stored. It
-works in ordinary classes and as a dataclass field default:
+`listify`, `tuplify`, and `stringify` accept a `default` for `None` input. Because
+`None` itself is ambiguous as a default, pass the string `"None"` if you want `None`
+returned:
 
 ```python
-import dataclasses
-
-
-@dataclasses.dataclass
-class Widget:
-    name: str = camina.Name()
-
-
-Widget().name           # 'widget'
-Widget(name="a").name   # 'a'
+camina.listify(None)                    # []
+camina.listify(None, default=["x"])     # ['x']
+camina.listify(None, default="None")    # None
 ```
-
-Pass `namer=` to `Name` to use a different function for one attribute. The
-function receives the class that owns the descriptor.
-
-## Writing descriptors
-
-`camina.Descriptor` is a base class that stores a value on the owning instance
-under the descriptor's name with a leading underscore. Subclass it and override
-`__set__` to validate values:
-
-```python
-class Positive(camina.Descriptor):
-    def __set__(self, instance, value):
-        if value <= 0:
-            raise ValueError(f"{self.attribute_name} must be positive")
-        super().__set__(instance, value)
-
-
-class Box:
-    width = Positive()
-```
-
-`Descriptor` provides `attribute_name`, `private_name`, and `owner` through
-`__set_name__`, and returns the descriptor itself when accessed on the class.
-
-## Defaults
-
-`default_factory` on `Dictionary`, `Catalog`, `ChainDictionary`, `Repository`,
-and `Hybrid` can be a value or a callable. If it is callable, it is called each
-time a default is needed. That is handled by `camina.resolve_default`. To store
-a callable as a *value*, wrap it (for example, in a `functools.partial` that
-returns it).
-
-## Performance notes
-
-* `Hybrid` looks up names by scanning its list. It trades lookup speed for
-  flexibility, so prefer `Dictionary` or `Repository` when you will make many
-  lookups.
-* `Catalog` compares keys against its wildcards on every lookup. That cost is
-  small but nonzero.
-* Modifiers create new containers instead of changing the ones passed in.
 
 ## Typing
 
-`camina` is fully annotated and checked with `mypy`. The container types are
-not generic, so annotate their contents with the standard collection types
-(for example, `Dictionary` stores a `MutableMapping[Hashable, Any]`).
+`camina` is fully annotated and checked with `mypy`. The dispatchers are typed
+with `Any` because they accept many types, but the type-specific functions
+(for example, `add_prefix_to_list`) have precise signatures.

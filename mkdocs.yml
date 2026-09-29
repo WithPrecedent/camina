@@ -3,7 +3,7 @@
 # Project Information
 
 site_name: camina
-site_description: Flexible, lightweight, extensible, easy-to-use data structures and types
+site_description: Flexible, lightweight functions for converting, modifying, and naming data
 site_url: https://WithPrecedent.github.io/camina
 repo_name: WithPrecedent/camina
 repo_url: https://github.com/WithPrecedent/camina

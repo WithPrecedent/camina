@@ -1,14 +1,12 @@
-"""Flexible, lightweight, extensible, easy-to-use data structures and types."""
+"""Flexible, lightweight functions for converting, modifying, and naming data."""
 
 from __future__ import annotations
 
-__version__ = "0.1.16"
+__version__ = "0.2.0"
 
 __author__: str = "Corey Rayburn Yung"
 
-from .base import Bunch, Descriptor, Proxy, resolve_default
 from .clock import how_soon_is_now, timer
-from .configuration import set_key_namer, set_method_namer
 from .convert import (
     dictify,
     hashify,
@@ -24,8 +22,7 @@ from .convert import (
     typify,
     windowify,
 )
-from .label import Name, get_key_namer, get_method_namer, namify
-from .mapping import Catalog, ChainDictionary, Dictionary, Repository
+from .label import namify
 from .modify import (
     add_prefix,
     add_prefix_to_dict,
@@ -79,19 +76,8 @@ from .modify import (
     snakify,
     uniquify,
 )
-from .sequence import Hybrid, Listing
 
 __all__: list[str] = [
-    "Bunch",
-    "Catalog",
-    "ChainDictionary",
-    "Descriptor",
-    "Dictionary",
-    "Hybrid",
-    "Listing",
-    "Name",
-    "Proxy",
-    "Repository",
     "add_prefix",
     "add_prefix_to_dict",
     "add_prefix_to_list",
@@ -140,8 +126,6 @@ __all__: list[str] = [
     "drop_suffix_from_set",
     "drop_suffix_from_str",
     "drop_suffix_from_tuple",
-    "get_key_namer",
-    "get_method_namer",
     "hashify",
     "how_soon_is_now",
     "instancify",
@@ -152,11 +136,8 @@ __all__: list[str] = [
     "namify",
     "numify",
     "pathlibify",
-    "resolve_default",
     "separate",
     "separate_str",
-    "set_key_namer",
-    "set_method_namer",
     "snakify",
     "stringify",
     "timer",

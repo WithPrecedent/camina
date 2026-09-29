@@ -16,41 +16,6 @@ load("a.csv")               # [Path('a.csv')]
 load(["a.csv", "b.csv"])    # [Path('a.csv'), Path('b.csv')]
 ```
 
-## Register strategies by name and pick a default
-
-```python
-strategies = camina.Catalog(
-    {"fast": fast_strategy, "safe": safe_strategy}, default="safe")
-
-strategies["default"]         # safe_strategy
-strategies[["fast", "safe"]]  # [fast_strategy, safe_strategy]
-```
-
-## Collect objects without choosing keys
-
-```python
-plugins = camina.Repository()
-plugins.add(MyPlugin())                 # key: 'my_plugin'
-plugins.add(MyPlugin())                 # key: 'my_plugin2'
-plugins.add(OtherPlugin(), key="other")
-```
-
-## Layer configuration
-
-```python
-config = camina.ChainDictionary([cli_options, file_options, defaults])
-config["timeout"]   # the first value found, in that order
-```
-
-## Keep order and allow repeated names
-
-```python
-pipeline = camina.Hybrid([Step("load"), Step("clean"), Step("clean")])
-pipeline["clean"]   # both 'clean' steps in a Hybrid
-pipeline[0]         # the first step
-pipeline.remove(pipeline[1])   # removes the first step equal to that one
-```
-
 ## Namespace keys
 
 ```python
