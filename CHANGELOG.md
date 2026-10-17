@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 * Updated to the `snickerdoodle` 0.4.0 template.
 * Removed `ruff format` from the `pre-commit` hooks because it removes the spaces around "=" in keyword arguments.
 * Made `ruff` prefer single quotes and converted the strings in the code to single quotes.
-* Relaxed `pydoclint` checks of type hints, class attributes, and raised exceptions.
+* Relaxed `pydoclint` checks of class attributes and raised exceptions.
 * Excluded `uv.lock` from the large file check.
 * Fixed typos in the contributing guide and noted that the project does not use a code formatter.
 

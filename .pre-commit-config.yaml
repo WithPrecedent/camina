@@ -36,6 +36,5 @@ repos:
       args:
         - --style=google
         - --check-return-types=False
-        - --arg-type-hints-in-docstring=False
         - --check-class-attributes=False
         - --skip-checking-raises=True
