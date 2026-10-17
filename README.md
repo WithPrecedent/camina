@@ -14,11 +14,9 @@
 
 ## What is camina?
 
-*"Truth is truth. How you deal with it is up to you."* - Captain Camina Drummer
-
 `camina` provides functions for common tasks with Python data. It has three parts:
 
-* **Converters**: functions that turn one type into another (`listify`, `tuplify`, `numify`, `pathlibify`, and more).
+* **Converters**: functions that turn one type into another (`listify`, `tuplify`, `numify`, `pathlibify`, etc.).
 * **Modifiers**: functions that change the contents of strings, lists, tuples, sets, and dicts without changing their types (`add_prefix`, `drop_suffix`, `snakify`, and more).
 * **Naming and time tools**: `namify` infers names for objects, and `how_soon_is_now` and `timer` handle timestamps and timing.
 
@@ -26,11 +24,14 @@
 
 ## Why use camina?
 
-* **Small, dependable helpers.** The converters and modifiers work on many types through `functools.singledispatch`, so you can also register your own types or call the type-specific versions directly.
+<p align="center">
+<img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExazZydDVuMnd1bmc5amdmZnVlNzAwMjJibmk2cGt4emluNnQ0NzEzZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/gupOJitwE3CnZkY7GO/giphy.gif" height="300"/>
+</p>
+
+* **Efficient, pure Python tools**: Lightweight and quick.
+* **Extensible and flexible**: The converters and modifiers work on many types through `functools.singledispatch`, so you can also register your own types or call the type-specific versions directly.
 * **Types are kept.** Modifiers return the same type they were given (a `list` stays a `list`, an `OrderedDict` stays an `OrderedDict`) and never change what you pass in.
 * **Forgiving inputs.** Functions like `listify` and `iterify` let your own functions accept "one item or many" arguments without special cases.
-
-Reasons *not* to use `camina`: most of these helpers are only a few lines of Python, so if you need just one of them, copying it may be simpler than adding a dependency.
 
 ## Features
 
@@ -63,7 +64,7 @@ The `camina.convert` module also includes single-purpose converters. `to_dict`, 
 
 ### Modifiers
 
-Each modifier below is a `functools.singledispatch` function that supports `str`, `dict`, `list`, `set`, and `tuple` types (unless noted). The type-specific versions are named by adding `_to_` or `_from_` and the type (for example, `add_prefix_to_str` and `drop_prefix_from_dict`).
+Each modifier below is a `functools.singledispatch` function that supports `str`, `dict`, `list`, `set`, and `tuple` types (including generics and subtypes). The type-specific versions are named by adding `_to_` or `_from_` and the type (for example, `add_prefix_to_str` and `drop_prefix_from_dict`).
 
 * Adders:
   * `add_prefix`: adds a str prefix to item. Also available: `add_prefix_to_dict`, `add_prefix_to_list`, `add_prefix_to_set`, `add_prefix_to_str`, and `add_prefix_to_tuple`.
@@ -92,7 +93,7 @@ Each modifier below is a `functools.singledispatch` function that supports `str`
 
 ### Requirements
 
-`camina` requires Python 3.11 or later. It has no third-party dependencies and runs on Linux, macOS, and Windows.
+`camina` requires Python 3.11 or later. It has no third-party dependencies.
 
 ### Installation
 

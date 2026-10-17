@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 <!-- insertion marker -->
 
+## 0.2.3
+
+### Changed
+
+* Revised the README: added a gif, reworded the "Why use camina?" section, and noted that modifiers support generics and subtypes.
+
 ## 0.2.2
 
 ### Changed
