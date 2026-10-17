@@ -75,9 +75,9 @@ from collections.abc import (
 from collections.abc import Set as AbstractSet
 from typing import Any, cast
 
-_NULL_STRINGS: tuple[str, ...] = ("None", "none")
+_NULL_STRINGS: tuple[str, ...] = ('None', 'none')
 _UNSUPPORTED: str = (
-    "item cannot be converted because it is an unsupported type: {name}"
+    'item cannot be converted because it is an unsupported type: {name}'
 )
 
 
@@ -180,7 +180,7 @@ def hashify(item: Any, /) -> Hashable:
         if _is_collection(item):
             return tuple(hashify(i) for i in item)
         return str(item)
-    return cast("Hashable", item)
+    return cast('Hashable', item)
 
 
 def instancify(item: type[Any] | object, **kwargs: Any) -> Any:
@@ -275,7 +275,7 @@ def kwargify(item: type[Any], /, args: tuple[Any, ...]) -> dict[str, Any]:
             annotations.update(inspect.get_annotations(base))
         names = list(annotations)
     if len(args) > len(names):
-        raise ValueError("There are too many args for item")
+        raise ValueError('There are too many args for item')
     return dict(zip(names, args, strict=False))
 
 
@@ -339,7 +339,7 @@ def numify(item: Any, raise_error: bool = False) -> int | float | Any:
         except (TypeError, ValueError):
             if raise_error:
                 raise TypeError(
-                    f"{item} not able to be converted to a numeric type"
+                    f'{item} not able to be converted to a numeric type'
                 ) from None
             return item
 
@@ -361,7 +361,7 @@ def pathlibify(item: str | pathlib.Path, /) -> pathlib.Path:
     """
     if isinstance(item, pathlib.Path):
         return item
-    raise TypeError("item must be str or pathlib.Path type")
+    raise TypeError('item must be str or pathlib.Path type')
 
 
 @functools.singledispatch
@@ -383,12 +383,12 @@ def stringify(item: Any, /, default: Any | None = None) -> Any:
 
     """
     if item is None:
-        return _null_default(default, "")
+        return _null_default(default, '')
     if isinstance(item, str):
         return item
     if isinstance(item, Sequence) and not isinstance(item, (bytes, bytearray)):
-        return ", ".join(str(i) for i in item)
-    raise TypeError("item must be str or a sequence")
+        return ', '.join(str(i) for i in item)
+    raise TypeError('item must be str or a sequence')
 
 
 @functools.singledispatch
@@ -441,12 +441,12 @@ def typify(item: Any) -> Any:
         try:
             return float(item)
         except ValueError:
-            if item.lower() in ("true", "yes"):
+            if item.lower() in ('true', 'yes'):
                 return True
-            if item.lower() in ("false", "no"):
+            if item.lower() in ('false', 'no'):
                 return False
-            if ", " in item:
-                return [typify(i) for i in item.split(", ")]
+            if ', ' in item:
+                return [typify(i) for i in item.split(', ')]
             return item
 
 
@@ -476,9 +476,9 @@ def windowify(
 
     """
     if length < 0:
-        raise ValueError("length must be >= 0")
+        raise ValueError('length must be >= 0')
     if length > 0 and step < 1:
-        raise ValueError("step must be >= 1")
+        raise ValueError('step must be >= 1')
     return _windows(item, length, fill_value, step)
 
 
@@ -616,7 +616,7 @@ def _float_to_index(item: float, /) -> int:
 
     """
     if not float(item).is_integer():
-        raise ValueError(f"{item} is not a whole number")
+        raise ValueError(f'{item} is not a whole number')
     return int(item)
 
 
@@ -676,9 +676,9 @@ def str_to_list(item: str, /) -> list[Any]:
     try:
         result = ast.literal_eval(item)
     except SyntaxError as error:
-        raise ValueError(f"{item!r} is not a valid python literal") from error
+        raise ValueError(f'{item!r} is not a valid python literal') from error
     if not isinstance(result, list):
-        raise TypeError(f"{item!r} is not a list literal")
+        raise TypeError(f'{item!r} is not a list literal')
     return result
 
 
@@ -824,7 +824,7 @@ def list_to_str(item: list[Any], /) -> str:
         str: the items in `item` separated by a comma and a space.
 
     """
-    return ", ".join(str(i) for i in item)
+    return ', '.join(str(i) for i in item)
 
 
 @to_str.register(type(None))
@@ -838,7 +838,7 @@ def none_to_str(item: None, /) -> str:
         str: "None".
 
     """
-    return "None"
+    return 'None'
 
 
 @to_str.register(pathlib.PurePath)
@@ -859,7 +859,7 @@ def path_to_str(item: pathlib.PurePath, /) -> str:
 def datetime_to_str(
     item: datetime.datetime,
     /,
-    time_format: str | None = "%Y-%m-%d_%H-%M",
+    time_format: str | None = '%Y-%m-%d_%H-%M',
 ) -> str:
     """Returns datetime `item` as a str based on `time_format`.
 
@@ -873,7 +873,7 @@ def datetime_to_str(
         str: converted datetime `item`.
 
     """
-    return item.strftime(time_format or "%Y-%m-%d_%H-%M")
+    return item.strftime(time_format or '%Y-%m-%d_%H-%M')
 
 
 datetime_to_string = datetime_to_str

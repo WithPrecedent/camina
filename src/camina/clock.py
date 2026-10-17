@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 def how_soon_is_now(
-    prefix: str | None = None, time_format: str | None = "%Y-%m-%d_%H-%M"
+    prefix: str | None = None, time_format: str | None = '%Y-%m-%d_%H-%M'
 ) -> str:
     """Creates a string from current date and time.
 
@@ -44,7 +44,7 @@ def how_soon_is_now(
         datetime.datetime.now().astimezone(), time_format=time_format
     )
     if prefix is not None:
-        return f"{prefix}{time_string}"
+        return f'{prefix}{time_string}'
     return time_string
 
 
@@ -63,7 +63,7 @@ def timer(process: Callable[..., Any]) -> Callable[..., Any]:
         Callable[..., Any]: decorated version of `process`.
 
     """
-    name = getattr(process, "__name__", type(process).__name__)
+    name = getattr(process, '__name__', type(process).__name__)
 
     @functools.wraps(process)
     def decorated(*args: Any, **kwargs: Any) -> Any:
@@ -71,7 +71,7 @@ def timer(process: Callable[..., Any]) -> Callable[..., Any]:
         result = process(*args, **kwargs)
         minutes, seconds = divmod(int(time.perf_counter() - start), 60)
         hours, minutes = divmod(minutes, 60)
-        print(f"{name} completed in {hours}:{minutes:02d}:{seconds:02d}")  # noqa: T201
+        print(f'{name} completed in {hours}:{minutes:02d}:{seconds:02d}')  # noqa: T201
         return result
 
     return decorated

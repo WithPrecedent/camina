@@ -39,10 +39,10 @@ def namify(item: Any, /, default: str | None = None) -> str | None:
     if isinstance(item, str):
         return item
     if not inspect.isclass(item):
-        name = getattr(item, "name", None)
+        name = getattr(item, 'name', None)
         if isinstance(name, str):
             return name
-    name = getattr(item, "__name__", None)
+    name = getattr(item, '__name__', None)
     if not isinstance(name, str):
         name = type(item).__name__
     return modify.snakify(name) if name else default
