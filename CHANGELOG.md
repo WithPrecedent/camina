@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 <!-- insertion marker -->
 
-## Unreleased
+## 0.2.4
 
 * Added the `py.typed` marker so that type checkers use the type hints in
   `camina`.
